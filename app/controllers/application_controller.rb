@@ -7,7 +7,7 @@ class ApplicationController < ActionController::Base
         begin
             User.find(session[:user_id])
         rescue
-            false
+            nil
         end
     end
     

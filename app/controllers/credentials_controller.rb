@@ -4,7 +4,7 @@ class CredentialsController < ApplicationController
   # GET /credentials
   # GET /credentials.json
   def index
-    @credentials = Credential.all
+    @credentials = Credential.order_by([:name, :asc]).page(params[:page])
   end
 
   # GET /credentials/1
