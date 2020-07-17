@@ -12,5 +12,5 @@ rm -f tmp/pids/server.pid
 # bin/rails g scaffold User name:string email:string password:string
 # rails g controller sessions new create login welcome 
 # yarn add bootstrap jquery popper.js
-rake db:mongoid:create_indexes
+# rake db:mongoid:create_indexes
 rails s -p 3000 -b '0.0.0.0'
