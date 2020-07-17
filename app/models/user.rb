@@ -8,4 +8,7 @@ class User
   field :password_digest, type: String
 
   has_secure_password
+
+  index({ email: 1 }, { unique: true })
+  validates_length_of :password, minimum: 8
 end

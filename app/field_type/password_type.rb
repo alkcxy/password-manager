@@ -31,6 +31,7 @@ class PasswordType
     end
 
     def encrypt(password)
+      return "" if password.blank?
       cipher = OpenSSL::Cipher::AES256.new :CBC
       cipher.encrypt
       iv = cipher.random_iv
