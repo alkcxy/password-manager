@@ -35,7 +35,7 @@ class PasswordType
       cipher = OpenSSL::Cipher::AES256.new :CBC
       cipher.encrypt
       iv = cipher.random_iv
-      cipher.key = ENV["SECRET_PM"]
+      cipher.key = Base64.decode64 ENV["SECRET_PM"]
       cipher_text = cipher.update(password) + cipher.final
       cipher_text = Base64.encode64(cipher_text).encode('utf-8')
       iv = Base64.encode64(iv).encode('utf-8')
@@ -48,7 +48,7 @@ class PasswordType
       decipher = OpenSSL::Cipher::AES256.new :CBC
       decipher.decrypt
       decipher.iv = Base64.decode64 cipher[1].encode('ascii-8bit') # previously saved
-      decipher.key = ENV["SECRET_PM"]
+      decipher.key = Base64.decode64 ENV["SECRET_PM"]
       plain_text = decipher.update(Base64.decode64 cipher[0].encode('ascii-8bit')) + decipher.final
       plain_text
     end

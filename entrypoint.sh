@@ -2,11 +2,11 @@
 
 rm -f tmp/pids/server.pid
 # gem update bundle
-# bundle install
+bundle install
 # bundle update
 # rails g mongoid:config
 # rails webpacker:install
-# yarn install
+yarn install
 # yarn upgrade
 # bin/rails g scaffold Credential name:string user:string password:PasswordType url:string note:text
 # bin/rails g scaffold User name:string email:string password:string

@@ -4,7 +4,7 @@ class CredentialsController < ApplicationController
   # GET /credentials
   # GET /credentials.json
   def index
-    @credentials = Credential.order_by([:name, :asc]).page(params[:page])
+    @credentials = Credential.only(:name, :user, :url, :note).order_by([:name, :asc]).page(params[:page])
     @credentials = @credentials.where('$text' => {'$search' => params[:q]}) if !params[:q].blank?
   end
 
