@@ -24,4 +24,12 @@ class SessionsController < ApplicationController
 
   def welcome
   end
+
+  def logout
+    cookies.delete(:user_id)
+    session.delete(:user_id)
+    reset_session
+    flash[:info] = "Sei stato disconnesso"
+    redirect_to root_url
+  end
 end
