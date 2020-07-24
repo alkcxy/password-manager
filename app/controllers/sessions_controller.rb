@@ -9,14 +9,13 @@ class SessionsController < ApplicationController
       @user = User.find_by(email: params[:email])
       if @user && @user.authenticate(params[:password])
         session[:user_id] = @user.id
-        redirect_to '/welcome'
       else
-        redirect_to '/login'
+        flash = "Login non valida"
       end
     rescue
-      raise
-      redirect_to '/login'
+      flash = "Login non valida"
     end
+    redirect_to root_url, notice: flash
   end
 
   def login
@@ -29,7 +28,6 @@ class SessionsController < ApplicationController
     cookies.delete(:user_id)
     session.delete(:user_id)
     reset_session
-    flash[:info] = "Sei stato disconnesso"
-    redirect_to root_url
+    redirect_to root_url, notice: "Sei stato disconnesso"
   end
 end

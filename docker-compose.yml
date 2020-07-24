@@ -32,5 +32,6 @@ services:
       # then Base64.encode64 key
       SECRET_PM: WkFKaXUzaGlRN3VoOFFEc1NTRmtHc25pRGRvbmZpMG8=\n
       SECRET_KEY_BASE: fdbdc02110a05b6a251d52e7ec43df7257b547b61238b59bc909d7645d1aadc36daa50d79fe8776ea43e658b1a4f41cca736f07bd173ff1a5d220622b3e465d7
+      RAILS_LOG_TO_STDOUT: 1
     ports:
       - 3000:3000

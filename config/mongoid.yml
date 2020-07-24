@@ -157,8 +157,56 @@ test:
     default:
       database: password_generator_test
       hosts:
-        - localhost:27017
+        - mongo:27017
       options:
         read:
           mode: :primary
-        max_pool_size: 1
+        max_pool_size: 
+        # The name of the user for authentication.
+        user: 'root'
+
+        # The password of the user for authentication.
+        password: 'example'
+
+        # The user's database roles.
+        # roles:
+        #   - 'dbOwner'
+
+        # Change the default authentication mechanism. Valid options are: :scram,
+        # :mongodb_cr, :mongodb_x509, and :plain. Note that all authentication
+        # mechanisms require username and password, with the exception of :mongodb_x509.
+        # Default on mongoDB 3.0 is :scram, default on 2.4 and 2.6 is :plain.
+        auth_mech: :scram
+
+        # The database or source to authenticate the user against.
+        # (default: the database specified above or admin)
+        auth_source: admin
+production:
+  clients:
+    default:
+      database: password_generator_production
+      hosts:
+        - mongo:27017
+      options:
+        read:
+          mode: :primary
+        max_pool_size: 5
+        # The name of the user for authentication.
+        user: 'root'
+
+        # The password of the user for authentication.
+        password: 'example'
+
+        # The user's database roles.
+        # roles:
+        #   - 'dbOwner'
+
+        # Change the default authentication mechanism. Valid options are: :scram,
+        # :mongodb_cr, :mongodb_x509, and :plain. Note that all authentication
+        # mechanisms require username and password, with the exception of :mongodb_x509.
+        # Default on mongoDB 3.0 is :scram, default on 2.4 and 2.6 is :plain.
+        auth_mech: :scram
+
+        # The database or source to authenticate the user against.
+        # (default: the database specified above or admin)
+        auth_source: admin
