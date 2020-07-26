@@ -1,6 +1,8 @@
-<h1>New User</h1>
+<h1>Nuovo Utente</h1>
 
 <%= render 'form', user: @user %>
-
-<%= link_to 'Back', users_path %> |
-<%= link_to 'Home page', welcome_path %>
+<br />
+<div class="btn-group" role="group" aria-label="Strumenti">
+    <%= link_to 'Lista Utenti', users_path, class: "btn btn-primary" %>
+    <%= link_to 'Home page', welcome_path, class: "btn btn-primary" %>
+</div>

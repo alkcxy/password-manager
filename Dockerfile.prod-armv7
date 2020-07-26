@@ -1,13 +1,12 @@
-FROM arm32v7/ruby:2.5-slim
+FROM arm32v7/ruby:2.7-slim
 LABEL Alessio Caradossi <alkcxy@gmail.com>
-RUN mkdir /bilancio
-WORKDIR /bilancio
-RUN apt-get update && apt-get upgrade -y && apt-get install -y -qq curl gnupg xz-utils --fix-missing --no-install-recommends
+ENV RAILS_ENV production
+RUN mkdir /password-manager
+WORKDIR /password-manager
+RUN apt-get update && apt-get upgrade -y && apt-get install -y -qq curl gnupg xz-utils python2 --fix-missing --no-install-recommends
 RUN curl -sS https://nodejs.org/dist/v10.16.3/node-v10.16.3-linux-armv7l.tar.xz | tar -Jx && mkdir /usr/local/ -p && mv node-v10.16.3-linux-armv7l/bin/node /usr/local/ && rm -rf node-v10.16.3-linux-armv7l/
 RUN curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | apt-key add - && echo "deb https://dl.yarnpkg.com/debian/ stable main" | tee /etc/apt/sources.list.d/yarn.list
-RUN apt-get update && apt-get install -qq -y python2 build-essential nodejs yarn git default-libmysqlclient-dev --fix-missing --no-install-recommends
-COPY . /bilancio
-RUN bundle install --without development test
-RUN yarn install
-RUN rails webpacker:compile
-RUN apt-get remove -y -qq curl gnupg xz-utils build-essential nodejs yarn git default-libmysqlclient-dev && apt-get -y -qq autoremove
+RUN apt-get update && apt-get install -qq -y build-essential nodejs yarn --fix-missing --no-install-recommends
+COPY . /password-manager
+RUN bundle config set without 'development test' && bundle install && yarn install && rails webpacker:compile
+RUN apt-get remove -y -qq curl gnupg xz-utils build-essential nodejs yarn && apt-get -y -qq autoremove

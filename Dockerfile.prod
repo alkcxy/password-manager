@@ -1,13 +1,12 @@
-FROM ruby:2.5-slim
+FROM ruby:2.7-slim
 LABEL Alessio Caradossi <alkcxy@gmail.com>
-RUN mkdir /bilancio
-WORKDIR /bilancio
-RUN apt-get update && apt-get upgrade -y && apt-get install -y -qq curl gnupg --fix-missing --no-install-recommends
+ENV RAILS_ENV production
+RUN mkdir /password-manager
+WORKDIR /password-manager
+RUN apt-get update && apt-get upgrade -y && apt-get install -y -qq curl gnupg python2 --fix-missing --no-install-recommends
 RUN curl -sL https://deb.nodesource.com/setup_10.x | bash -
 RUN curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | apt-key add - && echo "deb https://dl.yarnpkg.com/debian/ stable main" | tee /etc/apt/sources.list.d/yarn.list
 RUN apt-get update && apt-get install -qq -y build-essential nodejs yarn git default-libmysqlclient-dev --fix-missing --no-install-recommends
-COPY . /bilancio
-RUN bundle install --without development test
-RUN yarn install
-RUN rails webpacker:compile
+COPY . /password-manager
+RUN bundle config set without 'development test' && bundle install && yarn install && rails webpacker:compile
 RUN apt-get remove -y -qq curl gnupg build-essential nodejs yarn git default-libmysqlclient-dev && apt-get -y -qq autoremove

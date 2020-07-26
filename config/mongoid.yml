@@ -5,11 +5,11 @@ development:
     default:
       # Defines the name of the default database that Mongoid can connect to.
       # (required).
-      database: password_generator_development
+      database: <%= ENV["MONGODB_DATABASE"] %>
       # Provides the hosts the default client can connect to. Must be an array
       # of host:port pairs. (required)
       hosts:
-        - mongo:27017
+        - <%= ENV["MONGODB_HOST"] %>:27017
       options:
         # Note that all options listed below are Ruby driver client options (the mongo gem).
         # Please refer to the driver documentation of the version of the mongo gem you are using
@@ -31,7 +31,7 @@ development:
         user: 'root'
 
         # The password of the user for authentication.
-        password: 'example'
+        password: '<%= ENV["MONGODB_ROOT_PASSWORD"] %>'
 
         # The user's database roles.
         # roles:
@@ -155,9 +155,9 @@ development:
 test:
   clients:
     default:
-      database: password_generator_test
+      database: <%= ENV["MONGODB_DATABASE"] %>
       hosts:
-        - mongo:27017
+        - <%= ENV["MONGODB_HOST"] %>:27017
       options:
         read:
           mode: :primary
@@ -166,7 +166,7 @@ test:
         user: 'root'
 
         # The password of the user for authentication.
-        password: 'example'
+        password: '<%= ENV["MONGODB_ROOT_PASSWORD"] %>'
 
         # The user's database roles.
         # roles:
@@ -184,9 +184,9 @@ test:
 production:
   clients:
     default:
-      database: password_generator_production
+      database: <%= ENV["MONGODB_DATABASE"] %>
       hosts:
-        - mongo:27017
+        - <%= ENV["MONGODB_HOST"] %>:27017
       options:
         read:
           mode: :primary
@@ -195,7 +195,7 @@ production:
         user: 'root'
 
         # The password of the user for authentication.
-        password: 'example'
+        password: '<%= ENV["MONGODB_ROOT_PASSWORD"] %>'
 
         # The user's database roles.
         # roles:
