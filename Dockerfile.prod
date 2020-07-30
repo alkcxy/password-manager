@@ -8,5 +8,10 @@ RUN curl -sL https://deb.nodesource.com/setup_10.x | bash -
 RUN curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | apt-key add - && echo "deb https://dl.yarnpkg.com/debian/ stable main" | tee /etc/apt/sources.list.d/yarn.list
 RUN apt-get update && apt-get install -qq -y build-essential nodejs yarn git default-libmysqlclient-dev --fix-missing --no-install-recommends
 COPY . /password-manager
-RUN bundle config set without 'development test' && bundle install && yarn install && rails webpacker:compile
+RUN bundle config set without 'development test' && bundle install
+RUN yarn install
+RUN yarn install --check-files 
+RUN yarn upgrade
+RUN rails webpacker:compile
+RUN rails assets:precompile
 RUN apt-get remove -y -qq curl gnupg build-essential nodejs yarn git default-libmysqlclient-dev && apt-get -y -qq autoremove

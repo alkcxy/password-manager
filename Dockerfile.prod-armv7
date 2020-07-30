@@ -8,5 +8,10 @@ RUN curl -sS https://nodejs.org/dist/v10.16.3/node-v10.16.3-linux-armv7l.tar.xz 
 RUN curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | apt-key add - && echo "deb https://dl.yarnpkg.com/debian/ stable main" | tee /etc/apt/sources.list.d/yarn.list
 RUN apt-get update && apt-get install -qq -y build-essential nodejs yarn --fix-missing --no-install-recommends
 COPY . /password-manager
-RUN bundle config set without 'development test' && bundle install && yarn install && rails webpacker:compile
-RUN apt-get remove -y -qq curl gnupg xz-utils build-essential nodejs yarn && apt-get -y -qq autoremove
+RUN bundle config set without 'development test' && bundle install
+RUN yarn install
+RUN yarn install --check-files 
+RUN yarn upgrade
+RUN rails webpacker:compile
+RUN rails assets:precompile
+RUN apt-get remove -y -qq curl gnupg xz-utils build-essential && apt-get -y -qq autoremove

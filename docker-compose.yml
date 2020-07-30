@@ -2,15 +2,16 @@ version: '3.5'
 
 services:
   mongo:
-    image: bitnami/mongodb
+    image: mongo
     restart: always
     env_file:
       - .env
     environment: 
-      MONGODB_ROOT_PASSWORD: ${MONGODB_ROOT_PASSWORD}
-      MONGODB_DATABASE: ${MONGODB_DATABASE}
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGODB_ROOT_PASSWORD}
+      MONGO_INITDB_DATABASE: ${MONGODB_DATABASE}
     volumes:
-      - mongodb:/bitnami/mongodb
+      - mongodb:/data/db
 
   mongo-express:
     image: mongo-express
@@ -23,7 +24,7 @@ services:
     links:
       - mongo
 
-  as:
+  passwordmanager:
     build: .
     command: /bin/sh -c "/password-manager/entrypoint.sh"
     restart: "no"
