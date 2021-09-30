@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <title>PasswordGenerator</title>
+    <title>Password Manager</title>
     <%= csrf_meta_tags %>
     <%= csp_meta_tag %>
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
@@ -10,7 +10,31 @@
   </head>
 
   <body>
-    <p id="notice"><%= notice %></p>
-    <%= yield %>
+    <div class="container">
+      <% if logged_in? %>
+      <div class="row">
+        <div class="col">
+          <h1>Password Manager</h1>
+          <% if current_user %>
+              <small>Benvenuto, sei autenticato come <%= link_to current_user.name, current_user %></small>
+          <% end %>
+        </div>
+        <div class="col">
+          <div class="btn-group" role="group" aria-label="Strumenti">
+            <%= link_to 'Home', welcome_path, class: "btn btn-dark btn-lg" %>
+            <% if current_user %>
+              <%= link_to "Credenziali", '/credentials', class: "btn btn-success btn-lg" %>
+            <% end %>
+            <%= link_to "Utenti", '/users', class: "btn btn-primary btn-lg" %>
+            <% if current_user %>
+              <%= link_to 'Esci', '/logout', class: "btn btn-danger btn-lg", data: { method: :delete } %>
+            <% end %>
+          </div>
+        </div>
+      </div>
+      <% end %>
+      <div id="notice"><%= notice %></div>
+      <%= yield %>
+    </div>
   </body>
 </html>

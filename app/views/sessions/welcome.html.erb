@@ -1,16 +1,10 @@
-<h1>Password Manager</h1>
-
 <% if logged_in? %>
     <% if current_user %>
-        <h2>Benvenuto, sei autenticato come <%= current_user.name %></h2>
+        <%= link_to "Nuova credenziale", '/credentials/new', class: "btn btn-success btn-lg btn-block" %>
     <% end %>
-    <%= button_to "Lista credenziali", '/credentials', method: :get, class: "btn btn-success btn-lg btn-block" %>
-    <br />
-    <%= button_to "Crea utente", '/users/new', method: :get, class: "btn btn-primary btn-lg btn-block" %>
-    <br />
-    <%= button_to 'Disconnettiti', '/logout', method: :delete, class: "btn btn-danger btn-lg btn-block" %>
+    <%= link_to "Crea utente", '/users/new', class: "btn btn-primary btn-lg btn-block" %>
 <% else %>
-    <%= button_to "Accedi", '/login', method: :get, class: "btn btn-info btn-lg btn-block" %>
+    <%= link_to "Accedi", '/login', class: "btn btn-info btn-lg btn-block" %>
 <%end%>
 
 

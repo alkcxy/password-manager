@@ -1,0 +1,16 @@
+tmp/*
+log/*
+.vagrant
+.git
+.capistrano
+.gitattributes
+.gitignore
+*.sql
+*.sqlite3
+Capfile
+Vagrantfile
+environment-var
+.env
+docker-*
+Docker*
+README.rdoc

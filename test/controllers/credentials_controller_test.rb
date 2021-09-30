@@ -17,7 +17,7 @@ class CredentialsControllerTest < ActionDispatch::IntegrationTest
 
   test "should create credential" do
     assert_difference('Credential.count') do
-      post credentials_url, params: { credential: { name: @credential.name, note: @credential.note, password: @credential.password, url: @credential.url, user: @credential.user } }
+      post credentials_url, params: { credential: { name: @credential.name, note: @credential.note, password: @credential.password, url: @credential.url, username: @credential.username } }
     end
 
     assert_redirected_to credential_url(Credential.last)
@@ -34,7 +34,7 @@ class CredentialsControllerTest < ActionDispatch::IntegrationTest
   end
 
   test "should update credential" do
-    patch credential_url(@credential), params: { credential: { name: @credential.name, note: @credential.note, password: @credential.password, url: @credential.url, user: @credential.user } }
+    patch credential_url(@credential), params: { credential: { name: @credential.name, note: @credential.note, password: @credential.password, url: @credential.url, username: @credential.username } }
     assert_redirected_to credential_url(@credential)
   end
 

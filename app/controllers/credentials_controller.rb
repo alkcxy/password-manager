@@ -4,7 +4,7 @@ class CredentialsController < ApplicationController
   # GET /credentials
   # GET /credentials.json
   def index
-    @credentials = Credential.only(:name, :user, :url, :note).order_by([:name, :asc]).page(params[:page])
+    @credentials = Credential.only(:name, :username, :url, :note).where(user_id: current_user.id).order_by([:name, :asc]).page(params[:page])
     @credentials = @credentials.where('$text' => {'$search' => params[:q]}) if !params[:q].blank?
   end
 
@@ -26,6 +26,7 @@ class CredentialsController < ApplicationController
   # POST /credentials.json
   def create
     @credential = Credential.new(credential_params)
+    @credential.user = current_user
 
     respond_to do |format|
       if @credential.save
@@ -70,6 +71,6 @@ class CredentialsController < ApplicationController
 
     # Only allow a list of trusted parameters through.
     def credential_params
-      params.require(:credential).permit(:name, :user, :password, :url, :note)
+      params.require(:credential).permit(:name, :username, :password, :url, :note)
     end
 end

@@ -1,11 +1,12 @@
-FROM arm32v7/ruby:2.7-slim
+FROM arm64v8/ruby:2.7-slim
 LABEL Alessio Caradossi <alkcxy@gmail.com>
 ENV RAILS_ENV production
 RUN mkdir /password-manager
 WORKDIR /password-manager
 RUN apt-get update && apt-get upgrade -y && apt-get install -y -qq curl gnupg xz-utils python2 --fix-missing --no-install-recommends
-RUN curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | apt-key add - && echo "deb https://dl.yarnpkg.com/debian/ stable main" | tee /etc/apt/sources.list.d/yarn.list
-RUN apt-get update && apt-get install -qq -y build-essential nodejs yarn --fix-missing --no-install-recommends
+RUN echo "deb https://dl.yarnpkg.com/debian/ stable main" | tee /etc/apt/sources.list.d/yarn.list
+RUN apt-get update --allow-insecure-repositories --allow-unauthenticated
+RUN apt-get install -qq -y build-essential nodejs yarn --fix-missing --no-install-recommends --allow-unauthenticated
 COPY . /password-manager
 RUN bundle config set without 'development test' && bundle install
 RUN yarn install

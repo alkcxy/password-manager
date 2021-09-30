@@ -18,7 +18,7 @@ class CredentialsTest < ApplicationSystemTestCase
     fill_in "Note", with: @credential.note
     fill_in "Password", with: @credential.password
     fill_in "Url", with: @credential.url
-    fill_in "User", with: @credential.user
+    fill_in "Username", with: @credential.username
     click_on "Create Credential"
 
     assert_text "Credential was successfully created"
@@ -33,7 +33,7 @@ class CredentialsTest < ApplicationSystemTestCase
     fill_in "Note", with: @credential.note
     fill_in "Password", with: @credential.password
     fill_in "Url", with: @credential.url
-    fill_in "User", with: @credential.user
+    fill_in "Username", with: @credential.username
     click_on "Update Credential"
 
     assert_text "Credential was successfully updated"
