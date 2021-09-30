@@ -8,7 +8,7 @@ RUN echo "deb https://dl.yarnpkg.com/debian/ stable main" | tee /etc/apt/sources
 RUN apt-get update --allow-insecure-repositories --allow-unauthenticated
 RUN apt-get install -qq -y build-essential nodejs yarn --fix-missing --no-install-recommends --allow-unauthenticated
 COPY . /password-manager
-RUN bundle config set without 'development test' && bundle install
+RUN bundle config set without 'development test' && bundle update
 RUN yarn install
 RUN yarn install --check-files 
 RUN yarn upgrade
