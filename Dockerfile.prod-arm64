@@ -3,8 +3,10 @@ LABEL Alessio Caradossi <alkcxy@gmail.com>
 ENV RAILS_ENV production
 RUN mkdir /password-manager
 WORKDIR /password-manager
-COPY zscaler_ca.pem /usr/local/share/ca-certificates/zscaler_ca.crt
-RUN apt-get update && apt-get upgrade -y && apt-get install -y -qq build-essential ca-certificates libyaml-dev --fix-missing --no-install-recommends && update-ca-certificates && rm -rf /var/lib/apt/lists/*
+ARG ZSCALER_CERT=
+RUN apt-get update && apt-get upgrade -y && apt-get install -y -qq build-essential ca-certificates libyaml-dev --fix-missing --no-install-recommends && \
+    if [ -n "${ZSCALER_CERT}" ]; then printf '%s' "${ZSCALER_CERT}" | base64 -d > /usr/local/share/ca-certificates/zscaler_ca.crt && update-ca-certificates; fi && \
+    rm -rf /var/lib/apt/lists/*
 COPY . /password-manager
 RUN bundle config set without 'development test' && bundle install
 RUN rails assets:precompile

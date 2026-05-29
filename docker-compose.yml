@@ -25,7 +25,10 @@ services:
       - mongo
 
   passwordmanager:
-    build: .
+    build:
+      context: .
+      args:
+        ZSCALER_CERT: ${ZSCALER_CERT:-}
     command: /bin/sh -c "/password-manager/entrypoint.sh"
     restart: "no"
     links:

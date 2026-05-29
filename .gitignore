@@ -58,6 +58,7 @@ build-iPhoneSimulator/
 node_modules
 vendor
 .DS_Store
+zscaler_ca.pem
 log/
 /public/assets
 /public/packs
