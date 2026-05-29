@@ -1,10 +1,12 @@
 ENV['RAILS_ENV'] ||= 'test'
+require 'base64'
+ENV['SECRET_PM'] ||= Base64.strict_encode64('a' * 32)
+
 require_relative '../config/environment'
 require 'rails/test_help'
 
 class ActiveSupport::TestCase
-  # Run tests in parallel with specified workers
-  parallelize(workers: :number_of_processors)
-
-  # Add more helper methods to be used by all tests here...
+  setup do
+    Mongoid.purge!
+  end
 end
