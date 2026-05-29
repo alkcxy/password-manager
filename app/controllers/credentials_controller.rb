@@ -1,5 +1,5 @@
 class CredentialsController < ApplicationController
-  before_action :set_credential, only: [:show, :edit, :update, :destroy]
+  before_action :set_credential, only: [:show, :edit, :update, :destroy, :reveal_password, :hide_password]
 
   def index
     @credentials = Credential.only(:name, :username, :url, :note).where(user_id: current_user.id).order_by([:name, :asc]).page(params[:page])
@@ -33,6 +33,12 @@ class CredentialsController < ApplicationController
     else
       render :edit, status: :unprocessable_entity
     end
+  end
+
+  def reveal_password
+  end
+
+  def hide_password
   end
 
   def destroy
