@@ -58,6 +58,7 @@ jobs:
 
   build-and-push:
     needs: test
+    if: needs.test.result == 'success'
     runs-on: ubuntu-latest
     permissions:
       contents: read
