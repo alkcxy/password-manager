@@ -1,0 +1,20 @@
+version: 2
+updates:
+  - package-ecosystem: "bundler"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    open-pull-requests-limit: 5
+    groups:
+      rails:
+        patterns:
+          - "rails*"
+          - "actionpack"
+          - "actionview"
+          - "activesupport"
+          - "railties"
+      mongoid:
+        patterns:
+          - "mongoid*"
+          - "kaminari*"
