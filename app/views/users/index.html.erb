@@ -22,10 +22,10 @@
   </tbody>
 </table>
 
-<br>
-
-<%= paginate @users %>
-<br />
+<div class="d-flex flex-column align-items-center my-3">
+  <span class="text-muted small mb-1"><%= page_entries_info @users %></span>
+  <%= paginate @users %>
+</div>
 <div class="btn-group" role="group" aria-label="Strumenti">
   <%= link_to 'Nuovo Utente', new_user_path, class: "btn btn-primary" %>
   <%= link_to 'Home', welcome_path, class: "btn btn-primary" %>

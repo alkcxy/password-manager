@@ -1,0 +1,25 @@
+it:
+  mongoid:
+    models:
+      credential:
+        one: credenziale
+        other: credenziali
+      user:
+        one: utente
+        other: utenti
+  views:
+    pagination:
+      first: "&laquo; Prima"
+      last: "Ultima &raquo;"
+      previous: "&lsaquo; Precedente"
+      next: "Successiva &rsaquo;"
+      truncate: "&hellip;"
+  helpers:
+    page_entries_info:
+      one_page:
+        display_entries:
+          zero: "Nessun %{entry_name} trovato"
+          one: "Visualizzando <b>1</b> %{entry_name}"
+          other: "Visualizzando <b>tutti e %{count}</b> %{entry_name}"
+      more_pages:
+        display_entries: "Visualizzando %{entry_name} <b>%{first}&nbsp;&ndash;&nbsp;%{last}</b> di <b>%{total}</b>"

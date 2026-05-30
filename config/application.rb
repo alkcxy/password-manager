@@ -20,5 +20,6 @@ module PasswordManager
     config.load_defaults 8.0
 
     config.autoload_paths += %W[#{config.root}/app/field_type]
+    config.i18n.default_locale = :it
   end
 end
