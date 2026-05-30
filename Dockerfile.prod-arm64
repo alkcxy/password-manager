@@ -1,17 +1,13 @@
-FROM arm64v8/ruby:2.7-slim
+FROM arm64v8/ruby:3.3-slim
 LABEL Alessio Caradossi <alkcxy@gmail.com>
 ENV RAILS_ENV production
 RUN mkdir /password-manager
 WORKDIR /password-manager
-RUN apt-get update && apt-get upgrade -y && apt-get install -y -qq curl gnupg xz-utils python2 --fix-missing --no-install-recommends
-RUN echo "deb https://dl.yarnpkg.com/debian/ stable main" | tee /etc/apt/sources.list.d/yarn.list
-RUN apt-get update --allow-insecure-repositories --allow-unauthenticated
-RUN apt-get install -qq -y build-essential nodejs yarn --fix-missing --no-install-recommends --allow-unauthenticated
+ARG ZSCALER_CERT=
+RUN apt-get update && apt-get upgrade -y && apt-get install -y -qq build-essential ca-certificates libyaml-dev --fix-missing --no-install-recommends && \
+    if [ -n "${ZSCALER_CERT}" ]; then printf '%s' "${ZSCALER_CERT}" | base64 -d > /usr/local/share/ca-certificates/zscaler_ca.crt && update-ca-certificates; fi && \
+    rm -rf /var/lib/apt/lists/*
 COPY . /password-manager
-RUN bundle config set without 'development test' && bundle update
-RUN yarn install
-RUN yarn install --check-files 
-RUN yarn upgrade
-RUN rails webpacker:compile
+RUN bundle config set without 'development test' && bundle install
 RUN rails assets:precompile
-RUN apt-get remove -y -qq curl gnupg xz-utils build-essential && apt-get -y -qq autoremove
+RUN apt-get remove -y -qq build-essential && apt-get -y -qq autoremove

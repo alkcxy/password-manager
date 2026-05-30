@@ -2,7 +2,12 @@ require 'test_helper'
 
 class CredentialsControllerTest < ActionDispatch::IntegrationTest
   setup do
-    @credential = credentials(:one)
+    @user = User.create!(name: 'Test User', email: 'test@example.com',
+                         password: 'password123', password_confirmation: 'password123')
+    @credential = Credential.create!(name: 'GitHub', username: 'testuser',
+                                     password: 'secret', url: 'https://github.com',
+                                     note: 'Personal account', user: @user)
+    post login_url, params: { email: @user.email, password: 'password123' }
   end
 
   test "should get index" do
@@ -17,9 +22,10 @@ class CredentialsControllerTest < ActionDispatch::IntegrationTest
 
   test "should create credential" do
     assert_difference('Credential.count') do
-      post credentials_url, params: { credential: { name: @credential.name, note: @credential.note, password: @credential.password, url: @credential.url, username: @credential.username } }
+      post credentials_url, params: { credential: { name: 'GitLab', username: 'user',
+                                                     password: 'pass', url: 'https://gitlab.com',
+                                                     note: '' } }
     end
-
     assert_redirected_to credential_url(Credential.last)
   end
 
@@ -34,7 +40,11 @@ class CredentialsControllerTest < ActionDispatch::IntegrationTest
   end
 
   test "should update credential" do
-    patch credential_url(@credential), params: { credential: { name: @credential.name, note: @credential.note, password: @credential.password, url: @credential.url, username: @credential.username } }
+    patch credential_url(@credential), params: { credential: { name: 'GitHub Updated',
+                                                                username: @credential.username,
+                                                                password: 'newpass',
+                                                                url: @credential.url,
+                                                                note: '' } }
     assert_redirected_to credential_url(@credential)
   end
 
@@ -42,7 +52,6 @@ class CredentialsControllerTest < ActionDispatch::IntegrationTest
     assert_difference('Credential.count', -1) do
       delete credential_url(@credential)
     end
-
     assert_redirected_to credentials_url
   end
 end

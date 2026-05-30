@@ -1,16 +1,10 @@
-FROM ruby:2.7-slim
+FROM ruby:3.3-slim
 LABEL Alessio Caradossi <alkcxy@gmail.com>
 ENV RAILS_ENV production
 RUN mkdir /password-manager
 WORKDIR /password-manager
-RUN apt-get update && apt-get upgrade -y && apt-get install -y -qq curl gnupg python2 --fix-missing --no-install-recommends
-RUN curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | apt-key add - && echo "deb https://dl.yarnpkg.com/debian/ stable main" | tee /etc/apt/sources.list.d/yarn.list
-RUN apt-get update && apt-get install -qq -y build-essential nodejs yarn git default-libmysqlclient-dev --fix-missing --no-install-recommends
+RUN apt-get update && apt-get upgrade -y && apt-get install -y -qq build-essential ca-certificates libyaml-dev --fix-missing --no-install-recommends
 COPY . /password-manager
 RUN bundle config set without 'development test' && bundle install
-RUN yarn install
-RUN yarn install --check-files 
-RUN yarn upgrade
-RUN rails webpacker:compile
-RUN rails assets:precompile
-RUN apt-get remove -y -qq curl gnupg build-essential nodejs yarn git default-libmysqlclient-dev && apt-get -y -qq autoremove
+RUN SECRET_KEY_BASE=dummy MONGODB_HOST=localhost MONGODB_DATABASE=dummy MONGODB_ROOT_PASSWORD=dummy rails assets:precompile
+RUN apt-get remove -y -qq build-essential && apt-get -y -qq autoremove && rm -rf /var/lib/apt/lists/*

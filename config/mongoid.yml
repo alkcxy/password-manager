@@ -155,7 +155,7 @@ development:
 test:
   clients:
     default:
-      database: <%= ENV["MONGODB_DATABASE"] %>
+      database: <%= ENV["MONGODB_DATABASE"] %>_test
       hosts:
         - <%= ENV["MONGODB_HOST"] %>:27017
       options:

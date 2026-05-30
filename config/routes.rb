@@ -4,7 +4,12 @@ Rails.application.routes.draw do
   get 'welcome', to: 'sessions#welcome'
   delete 'logout', to: 'sessions#logout'
   resources :users
-  resources :credentials
+  resources :credentials do
+    member do
+      get :reveal_password
+      get :hide_password
+    end
+  end
   root 'sessions#welcome'
   # For details on the DSL available within this file, see https://guides.rubyonrails.org/routing.html
 end
