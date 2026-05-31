@@ -7,6 +7,14 @@ it:
       user:
         one: utente
         other: utenti
+  errors:
+    messages:
+      blank: "non può essere vuoto"
+      taken: "è già stato preso"
+      too_short:
+        one: "è troppo corto (minimo 1 carattere)"
+        other: "è troppo corto (minimo %{count} caratteri)"
+      invalid: "non è valido"
   views:
     pagination:
       first: "&laquo; Prima"

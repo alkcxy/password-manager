@@ -10,7 +10,7 @@ class UserTest < ActiveSupport::TestCase
   test "requires email" do
     user = User.new(name: 'Alice', password: 'password123', password_confirmation: 'password123')
     assert_not user.valid?
-    assert_includes user.errors[:email], "can't be blank"
+    assert_includes user.errors[:email], "non può essere vuoto"
   end
 
   test "requires password of at least 8 characters" do

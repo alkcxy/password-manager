@@ -54,4 +54,25 @@ class CredentialsControllerTest < ActionDispatch::IntegrationTest
     end
     assert_redirected_to credentials_url
   end
+
+  test "index shows page 1 as active in paginator" do
+    26.times { |i| Credential.create!(name: "Cred #{i}", username: "u", password: "p", url: "https://x.com", note: "", user: @user) }
+    get credentials_url
+    assert_response :success
+    assert_select "li.page-item.active a.page-link", text: "1"
+  end
+
+  test "index shows page 2 as active when requested" do
+    26.times { |i| Credential.create!(name: "Cred #{i}", username: "u", password: "p", url: "https://x.com", note: "", user: @user) }
+    get credentials_url, params: { page: 2 }
+    assert_response :success
+    assert_select "li.page-item.active a.page-link", text: "2"
+  end
+
+  test "index renders Bootstrap pagination markup" do
+    26.times { |i| Credential.create!(name: "Cred #{i}", username: "u", password: "p", url: "https://x.com", note: "", user: @user) }
+    get credentials_url
+    assert_select "ul.pagination"
+    assert_select "li.page-item"
+  end
 end
