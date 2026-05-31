@@ -49,4 +49,25 @@ class UsersControllerTest < ActionDispatch::IntegrationTest
     end
     assert_redirected_to users_url
   end
+
+  test "index shows page 1 as active in paginator" do
+    25.times { |i| User.create!(name: "User #{i}", email: "u#{i}@example.com", password: "password123", password_confirmation: "password123") }
+    get users_url
+    assert_response :success
+    assert_select "li.page-item.active a.page-link", text: "1"
+  end
+
+  test "index shows page 2 as active when requested" do
+    25.times { |i| User.create!(name: "User #{i}", email: "u#{i}@example.com", password: "password123", password_confirmation: "password123") }
+    get users_url, params: { page: 2 }
+    assert_response :success
+    assert_select "li.page-item.active a.page-link", text: "2"
+  end
+
+  test "index renders Bootstrap pagination markup" do
+    25.times { |i| User.create!(name: "User #{i}", email: "u#{i}@example.com", password: "password123", password_confirmation: "password123") }
+    get users_url
+    assert_select "ul.pagination"
+    assert_select "li.page-item"
+  end
 end

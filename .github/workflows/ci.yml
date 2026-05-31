@@ -22,6 +22,11 @@ jobs:
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
+      selenium:
+        image: selenium/standalone-chrome
+        options: --shm-size=2g
+        ports:
+          - 4444:4444
 
     env:
       RAILS_ENV: test
@@ -39,3 +44,9 @@ jobs:
 
       - name: Run tests
         run: bundle exec rails test
+
+      - name: Run system tests
+        run: bundle exec rails test:system
+        env:
+          SELENIUM_REMOTE_URL: http://localhost:4444
+          APP_HOST: localhost

@@ -17,7 +17,7 @@ class CredentialTest < ActiveSupport::TestCase
     cred = Credential.new(username: 'alice', password: 'secret',
                           url: 'https://github.com', user: @user)
     assert_not cred.valid?
-    assert_includes cred.errors[:name], "can't be blank"
+    assert_includes cred.errors[:name], "non può essere vuoto"
   end
 
   test "requires user" do
@@ -30,7 +30,7 @@ class CredentialTest < ActiveSupport::TestCase
     cred = Credential.new(name: 'GitHub', password: 'secret',
                           url: 'https://github.com', user: @user)
     assert_not cred.valid?
-    assert_includes cred.errors[:username], "can't be blank"
+    assert_includes cred.errors[:username], "non può essere vuoto"
   end
 
   test "password is encrypted at rest" do
