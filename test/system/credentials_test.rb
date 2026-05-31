@@ -11,6 +11,7 @@ class CredentialsTest < ApplicationSystemTestCase
     fill_in "Email", with: @user.email
     fill_in "Password", with: "password123"
     click_on "Login"
+    assert_text "Benvenuto"
   end
 
   test "visiting the index" do
@@ -27,7 +28,7 @@ class CredentialsTest < ApplicationSystemTestCase
     fill_in "Password", with: "secret2"
     fill_in "Url", with: "https://gitlab.com"
     fill_in "Username", with: "testuser"
-    click_on "Create Credential"
+    find('[type="submit"]').click
 
     assert_text "Credential was successfully created"
   end
@@ -36,7 +37,7 @@ class CredentialsTest < ApplicationSystemTestCase
     visit edit_credential_url(@credential)
 
     fill_in "Name", with: "GitHub Updated"
-    click_on "Update Credential"
+    find('[type="submit"]').click
 
     assert_text "Credential was successfully updated"
   end

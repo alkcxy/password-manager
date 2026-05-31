@@ -16,7 +16,7 @@
         <td><%= user.email %></td>
         <td><%= link_to 'Visualizza', user %></td>
         <td><%= link_to 'Modifica', edit_user_path(user) %></td>
-        <td><%= link_to 'Cancella', user, method: :delete, data: { confirm: 'Sei sicuro?' } %></td>
+        <td><%= link_to 'Cancella', user, data: { turbo_method: :delete, turbo_confirm: 'Sei sicuro?' } %></td>
       </tr>
     <% end %>
   </tbody>

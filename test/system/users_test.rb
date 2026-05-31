@@ -8,6 +8,7 @@ class UsersTest < ApplicationSystemTestCase
     fill_in "Email", with: @user.email
     fill_in "Password", with: "password123"
     click_on "Login"
+    assert_text "Benvenuto"
   end
 
   test "visiting the index" do
@@ -23,7 +24,7 @@ class UsersTest < ApplicationSystemTestCase
     fill_in "Name", with: "New User"
     fill_in "Password", with: "password123"
     fill_in "Password confirmation", with: "password123"
-    click_on "Create User"
+    find('[type="submit"]').click
 
     assert_text "User was successfully created"
   end
@@ -34,7 +35,7 @@ class UsersTest < ApplicationSystemTestCase
     fill_in "Name", with: "Updated Name"
     fill_in "Password", with: "password123"
     fill_in "Password confirmation", with: "password123"
-    click_on "Update User"
+    find('[type="submit"]').click
 
     assert_text "User was successfully updated"
   end
