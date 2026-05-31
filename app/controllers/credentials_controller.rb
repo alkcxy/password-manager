@@ -3,6 +3,9 @@ class CredentialsController < ApplicationController
   rescue_from Mongoid::Errors::DocumentNotFound do
     head :not_found
   end
+  rescue_from ActionController::UnknownFormat do
+    head :not_acceptable
+  end
 
   def index
     @credentials = Credential.only(:name, :username, :url, :note).where(user_id: current_user.id).order_by([:name, :asc]).page(params[:page])
@@ -31,7 +34,9 @@ class CredentialsController < ApplicationController
   end
 
   def update
-    if @credential.update(credential_params)
+    attrs = credential_params
+    attrs = attrs.except(:password) if attrs[:password].blank?
+    if @credential.update(attrs)
       redirect_to @credential, notice: 'Credential was successfully updated.'
     else
       render :edit, status: :unprocessable_entity
@@ -45,7 +50,9 @@ class CredentialsController < ApplicationController
   end
 
   def copy_password
-    render json: { password: @credential.password.to_s }
+    respond_to do |format|
+      format.json { render json: { password: @credential.password.to_s } }
+    end
   end
 
   def destroy

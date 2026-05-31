@@ -12,7 +12,7 @@ export default class extends Controller {
       fetch(this.urlValue, { headers: { Accept: "application/json" } })
         .then(r => { if (!r.ok) throw new Error(r.status); return r.json(); })
         .then(({ password }) => this.#write(password))
-        .catch(() => {})
+        .catch(() => this.#flash("🚫"))
     } else {
       this.#write(this.textValue)
     }
@@ -20,14 +20,14 @@ export default class extends Controller {
 
   #write(text) {
     navigator.clipboard.writeText(text).then(() => {
-      this.#feedback()
+      this.#flash("✓")
       setTimeout(() => navigator.clipboard.writeText(""), this.clearAfterValue)
-    })
+    }).catch(() => this.#flash("🚫"))
   }
 
-  #feedback() {
+  #flash(icon) {
     const original = this.element.textContent
-    this.element.textContent = "✓"
+    this.element.textContent = icon
     this.element.disabled = true
     setTimeout(() => {
       this.element.textContent = original

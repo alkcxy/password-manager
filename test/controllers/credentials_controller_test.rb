@@ -76,16 +76,36 @@ class CredentialsControllerTest < ActionDispatch::IntegrationTest
     assert_select "li.page-item"
   end
 
+  test "edit form renders decrypted password in input value" do
+    get edit_credential_url(@credential)
+    assert_select "input[name='credential[password]'][value='secret']"
+  end
+
+  test "update preserves existing password when blank password submitted" do
+    patch credential_url(@credential), params: { credential: { name: 'GitHub Updated',
+                                                                username: @credential.username,
+                                                                password: '',
+                                                                url: @credential.url,
+                                                                note: '' } }
+    assert_redirected_to credential_url(@credential)
+    assert_equal "secret", @credential.reload.password
+  end
+
   test "copy_password returns JSON with decrypted password" do
-    get copy_password_credential_url(@credential)
+    get copy_password_credential_url(@credential), headers: { "Accept" => "application/json" }
     assert_response :success
     json = JSON.parse(response.body)
     assert_equal "secret", json["password"]
   end
 
+  test "copy_password returns 406 for non-JSON request" do
+    get copy_password_credential_url(@credential)
+    assert_response :not_acceptable
+  end
+
   test "copy_password requires authentication" do
     delete logout_url
-    get copy_password_credential_url(@credential)
+    get copy_password_credential_url(@credential), headers: { "Accept" => "application/json" }
     assert_redirected_to "/welcome"
   end
 
@@ -95,7 +115,7 @@ class CredentialsControllerTest < ActionDispatch::IntegrationTest
     other_cred = Credential.create!(name: "Other Cred", username: "x",
                                     password: "topsecret", url: "https://other.com",
                                     note: "", user: other)
-    get copy_password_credential_url(other_cred)
+    get copy_password_credential_url(other_cred), headers: { "Accept" => "application/json" }
     assert_response :not_found
   end
 end
