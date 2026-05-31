@@ -75,4 +75,27 @@ class CredentialsControllerTest < ActionDispatch::IntegrationTest
     assert_select "ul.pagination"
     assert_select "li.page-item"
   end
+
+  test "copy_password returns JSON with decrypted password" do
+    get copy_password_credential_url(@credential)
+    assert_response :success
+    json = JSON.parse(response.body)
+    assert_equal "secret", json["password"]
+  end
+
+  test "copy_password requires authentication" do
+    delete logout_url
+    get copy_password_credential_url(@credential)
+    assert_redirected_to "/welcome"
+  end
+
+  test "copy_password returns 404 for another user's credential" do
+    other = User.create!(name: "Other", email: "other@example.com",
+                         password: "password123", password_confirmation: "password123")
+    other_cred = Credential.create!(name: "Other Cred", username: "x",
+                                    password: "topsecret", url: "https://other.com",
+                                    note: "", user: other)
+    get copy_password_credential_url(other_cred)
+    assert_response :not_found
+  end
 end

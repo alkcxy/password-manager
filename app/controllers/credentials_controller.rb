@@ -1,5 +1,6 @@
 class CredentialsController < ApplicationController
-  before_action :set_credential, only: [:show, :edit, :update, :destroy, :reveal_password, :hide_password]
+  before_action :set_credential, only: [:show, :edit, :update, :destroy, :reveal_password, :hide_password, :copy_password]
+  rescue_from Mongoid::Errors::DocumentNotFound, with: -> { head :not_found }
 
   def index
     @credentials = Credential.only(:name, :username, :url, :note).where(user_id: current_user.id).order_by([:name, :asc]).page(params[:page])
@@ -41,6 +42,10 @@ class CredentialsController < ApplicationController
   def hide_password
   end
 
+  def copy_password
+    render json: { password: @credential.password.to_s }
+  end
+
   def destroy
     @credential.destroy
     redirect_to credentials_url, notice: 'Credential was successfully destroyed.'
@@ -49,7 +54,7 @@ class CredentialsController < ApplicationController
   private
 
   def set_credential
-    @credential = Credential.find(params[:id])
+    @credential = current_user.credentials.find(params[:id])
   end
 
   def credential_params
