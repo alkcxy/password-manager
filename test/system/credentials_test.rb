@@ -50,4 +50,68 @@ class CredentialsTest < ApplicationSystemTestCase
 
     assert_text "Credential was successfully destroyed"
   end
+
+  test "copy username from index writes correct value to clipboard" do
+    visit credentials_url
+    page.execute_script(<<~JS)
+      window._clipboard = [];
+      navigator.clipboard = { writeText: t => { window._clipboard.push(t); return Promise.resolve(); } };
+    JS
+
+    find('[aria-label="Copia username"]', match: :first).click
+
+    assert_equal @credential.username, page.evaluate_script('window._clipboard[0]')
+  end
+
+  test "copy username button shows checkmark feedback then reverts" do
+    visit credentials_url
+    page.execute_script(<<~JS)
+      navigator.clipboard = { writeText: () => Promise.resolve() };
+    JS
+
+    btn = find('[aria-label="Copia username"]', match: :first)
+    btn.click
+    assert_text "✓"
+    sleep 2.1
+    assert_no_text "✓"
+  end
+
+  test "copy password from index writes correct value to clipboard without revealing it" do
+    visit credentials_url
+    page.execute_script(<<~JS)
+      window._clipboard = [];
+      navigator.clipboard = { writeText: t => { window._clipboard.push(t); return Promise.resolve(); } };
+    JS
+
+    find('[aria-label="Copia password"]', match: :first).click
+    find('[aria-label="Copia password"]', text: "✓", match: :first)
+
+    assert_equal "secret", page.evaluate_script('window._clipboard[0]')
+    assert_no_text "secret"
+  end
+
+  test "copy username from show view writes correct value to clipboard" do
+    visit credential_url(@credential)
+    page.execute_script(<<~JS)
+      window._clipboard = [];
+      navigator.clipboard = { writeText: t => { window._clipboard.push(t); return Promise.resolve(); } };
+    JS
+
+    find('[aria-label="Copia username"]').click
+
+    assert_equal @credential.username, page.evaluate_script('window._clipboard[0]')
+  end
+
+  test "copy password from show view writes correct value to clipboard" do
+    visit credential_url(@credential)
+    page.execute_script(<<~JS)
+      window._clipboard = [];
+      navigator.clipboard = { writeText: t => { window._clipboard.push(t); return Promise.resolve(); } };
+    JS
+
+    find('[aria-label="Copia password"]').click
+    find('[aria-label="Copia password"]', text: "✓")
+
+    assert_equal "secret", page.evaluate_script('window._clipboard[0]')
+  end
 end
