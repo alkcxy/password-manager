@@ -19,6 +19,7 @@ export default class extends Controller {
   }
 
   #write(text) {
+    if (!navigator.clipboard) { this.#flash("🚫"); return }
     navigator.clipboard.writeText(text).then(() => {
       this.#flash("✓")
       setTimeout(() => navigator.clipboard.writeText(""), this.clearAfterValue)
