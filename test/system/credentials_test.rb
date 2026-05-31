@@ -50,4 +50,107 @@ class CredentialsTest < ApplicationSystemTestCase
 
     assert_text "Credential was successfully destroyed"
   end
+
+  test "copy username from index writes correct value to clipboard" do
+    visit credentials_url
+    page.execute_script(<<~JS)
+      window._clipboard = [];
+      navigator.clipboard = { writeText: t => { window._clipboard.push(t); return Promise.resolve(); } };
+    JS
+
+    find('[aria-label="Copia username"]', match: :first).click
+
+    assert_equal @credential.username, page.evaluate_script('window._clipboard[0]')
+  end
+
+  test "copy username button shows checkmark feedback then reverts" do
+    visit credentials_url
+    page.execute_script(<<~JS)
+      navigator.clipboard = { writeText: () => Promise.resolve() };
+    JS
+
+    btn = find('[aria-label="Copia username"]', match: :first)
+    btn.click
+    assert_selector '[aria-label="Copia username"]', text: "✓", match: :first
+    assert_no_selector '[aria-label="Copia username"]', text: "✓", match: :first, wait: 5
+  end
+
+  test "copy password from index writes correct value to clipboard without revealing it" do
+    visit credentials_url
+    page.execute_script(<<~JS)
+      window._clipboard = [];
+      navigator.clipboard = { writeText: t => { window._clipboard.push(t); return Promise.resolve(); } };
+    JS
+
+    find('[aria-label="Copia password"]', match: :first).click
+    find('[aria-label="Copia password"]', text: "✓", match: :first)
+
+    assert_equal "secret", page.evaluate_script('window._clipboard[0]')
+    assert_no_text "secret"
+  end
+
+  test "copy username from show view writes correct value to clipboard" do
+    visit credential_url(@credential)
+    page.execute_script(<<~JS)
+      window._clipboard = [];
+      navigator.clipboard = { writeText: t => { window._clipboard.push(t); return Promise.resolve(); } };
+    JS
+
+    find('[aria-label="Copia username"]').click
+
+    assert_equal @credential.username, page.evaluate_script('window._clipboard[0]')
+  end
+
+  test "edit form shows decrypted password and preserves it when saved without changes" do
+    visit edit_credential_url(@credential)
+    assert_field "Password", with: "secret"
+
+    fill_in "Name", with: "GitHub Renamed"
+    find('[type="submit"]').click
+    assert_text "Credential was successfully updated"
+
+    page.execute_script(<<~JS)
+      window._clipboard = [];
+      navigator.clipboard = { writeText: t => { window._clipboard.push(t); return Promise.resolve(); } };
+    JS
+    find('[aria-label="Copia password"]').click
+    find('[aria-label="Copia password"]', text: "✓")
+    assert_equal "secret", page.evaluate_script('window._clipboard[0]')
+  end
+
+  test "copy password from show view writes correct value to clipboard without revealing it" do
+    visit credential_url(@credential)
+    page.execute_script(<<~JS)
+      window._clipboard = [];
+      navigator.clipboard = { writeText: t => { window._clipboard.push(t); return Promise.resolve(); } };
+    JS
+
+    find('[aria-label="Copia password"]').click
+    find('[aria-label="Copia password"]', text: "✓")
+
+    assert_equal "secret", page.evaluate_script('window._clipboard[0]')
+    assert_no_text "secret"
+  end
+
+  test "copy password shows error icon when fetch fails from index" do
+    visit credentials_url
+    page.execute_script(<<~JS)
+      window.fetch = () => Promise.reject(new Error('network error'))
+    JS
+
+    find('[aria-label="Copia password"]', match: :first).click
+    assert_selector '[aria-label="Copia password"]', text: "🚫", match: :first
+    assert_no_selector '[aria-label="Copia password"]', text: "🚫", match: :first, wait: 5
+  end
+
+  test "copy password shows error icon when fetch fails from show view" do
+    visit credential_url(@credential)
+    page.execute_script(<<~JS)
+      window.fetch = () => Promise.reject(new Error('network error'))
+    JS
+
+    find('[aria-label="Copia password"]').click
+    assert_selector '[aria-label="Copia password"]', text: "🚫"
+    assert_no_selector '[aria-label="Copia password"]', text: "🚫", wait: 5
+  end
 end

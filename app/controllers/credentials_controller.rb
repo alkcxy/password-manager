@@ -1,5 +1,11 @@
 class CredentialsController < ApplicationController
-  before_action :set_credential, only: [:show, :edit, :update, :destroy, :reveal_password, :hide_password]
+  before_action :set_credential, only: [:show, :edit, :update, :destroy, :reveal_password, :hide_password, :copy_password]
+  rescue_from Mongoid::Errors::DocumentNotFound do
+    head :not_found
+  end
+  rescue_from ActionController::UnknownFormat do
+    head :not_acceptable
+  end
 
   def index
     @credentials = Credential.only(:name, :username, :url, :note).where(user_id: current_user.id).order_by([:name, :asc]).page(params[:page])
@@ -28,7 +34,9 @@ class CredentialsController < ApplicationController
   end
 
   def update
-    if @credential.update(credential_params)
+    attrs = credential_params
+    attrs = attrs.except(:password) if attrs[:password].blank?
+    if @credential.update(attrs)
       redirect_to @credential, notice: 'Credential was successfully updated.'
     else
       render :edit, status: :unprocessable_entity
@@ -41,6 +49,12 @@ class CredentialsController < ApplicationController
   def hide_password
   end
 
+  def copy_password
+    respond_to do |format|
+      format.json { render json: { password: @credential.password.to_s } }
+    end
+  end
+
   def destroy
     @credential.destroy
     redirect_to credentials_url, notice: 'Credential was successfully destroyed.'
@@ -49,7 +63,7 @@ class CredentialsController < ApplicationController
   private
 
   def set_credential
-    @credential = Credential.find(params[:id])
+    @credential = current_user.credentials.find(params[:id])
   end
 
   def credential_params

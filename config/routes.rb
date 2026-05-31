@@ -8,6 +8,7 @@ Rails.application.routes.draw do
     member do
       get :reveal_password
       get :hide_password
+      get :copy_password
     end
   end
   root 'sessions#welcome'
