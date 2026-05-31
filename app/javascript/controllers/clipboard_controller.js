@@ -10,8 +10,9 @@ export default class extends Controller {
   copy() {
     if (this.hasUrlValue) {
       fetch(this.urlValue, { headers: { Accept: "application/json" } })
-        .then(r => r.json())
+        .then(r => { if (!r.ok) throw new Error(r.status); return r.json(); })
         .then(({ password }) => this.#write(password))
+        .catch(() => {})
     } else {
       this.#write(this.textValue)
     }

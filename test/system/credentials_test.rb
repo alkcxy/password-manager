@@ -71,9 +71,8 @@ class CredentialsTest < ApplicationSystemTestCase
 
     btn = find('[aria-label="Copia username"]', match: :first)
     btn.click
-    assert_text "✓"
-    sleep 2.1
-    assert_no_text "✓"
+    assert_selector '[aria-label="Copia username"]', text: "✓", match: :first
+    assert_no_selector '[aria-label="Copia username"]', text: "✓", match: :first, wait: 5
   end
 
   test "copy password from index writes correct value to clipboard without revealing it" do

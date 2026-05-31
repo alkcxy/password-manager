@@ -1,6 +1,8 @@
 class CredentialsController < ApplicationController
   before_action :set_credential, only: [:show, :edit, :update, :destroy, :reveal_password, :hide_password, :copy_password]
-  rescue_from Mongoid::Errors::DocumentNotFound, with: -> { head :not_found }
+  rescue_from Mongoid::Errors::DocumentNotFound do
+    head :not_found
+  end
 
   def index
     @credentials = Credential.only(:name, :username, :url, :note).where(user_id: current_user.id).order_by([:name, :asc]).page(params[:page])
