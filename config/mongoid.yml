@@ -31,7 +31,7 @@ development:
         user: 'root'
 
         # The password of the user for authentication.
-        password: '<%= ENV["MONGODB_ROOT_PASSWORD"] %>'
+        password: 'example'
 
         # The user's database roles.
         # roles:
