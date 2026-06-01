@@ -16,4 +16,7 @@ Rails.application.configure do
 
   config.action_mailer.perform_caching = false
   config.action_mailer.delivery_method = :test
+
+  config.secret_key_base = "test_secret_key_base_not_for_production_use_only_local_test_env"
+  ENV["SECRET_PM"] ||= "WkFKaXUzaGlRN3VoOFFEc1NTRmtHc25pRGRvbmZpMG8="
 end
