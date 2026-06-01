@@ -137,10 +137,10 @@ class CredentialsControllerTest < ActionDispatch::IntegrationTest
   test "index: table uses fixed layout with percentage widths summing to 100%" do
     get credentials_url
     assert_select "table[style*='table-layout: fixed']"
-    assert_select "th[style='width: 14%']", text: "Name"
-    assert_select "th[style='width: 16%']", text: "Username"
-    assert_select "th[style='width: 18%']", text: "Url"
-    assert_select "th[style='width: 30%']", text: "Password"
+    assert_select "th[style='width: 12%']", text: "Name"
+    assert_select "th[style='width: 14%']", text: "Username"
+    assert_select "th[style='width: 24%']", text: "Url"
+    assert_select "th[style='width: 28%']", text: "Password"
     assert_select "th[style='width: 22%']"
   end
 
