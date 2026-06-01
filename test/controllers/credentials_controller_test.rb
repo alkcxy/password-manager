@@ -184,7 +184,8 @@ class CredentialsControllerTest < ActionDispatch::IntegrationTest
     Credential.create!(name: 'No Note', username: 'u', password: 'pw',
                        url: 'https://x.com', note: '', user: @user)
     get credentials_url
-    assert_select "button[data-bs-toggle='popover']", count: 1
+    # two renders: mobile card + desktop table, both show the button only for @credential
+    assert_select "button[data-bs-toggle='popover']", count: 2
   end
 
   test "index: note, edit and delete buttons are in the same text-nowrap cell" do
