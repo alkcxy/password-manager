@@ -27,12 +27,25 @@ export default class extends Controller {
   }
 
   #flash(icon) {
-    const original = this.element.innerHTML
-    this.element.innerHTML = icon
-    this.element.disabled = true
-    setTimeout(() => {
-      this.element.innerHTML = original
-      this.element.disabled = false
-    }, 2000)
+    const iconEl = this.element.querySelector('i')
+    if (iconEl) {
+      const originalClass = iconEl.className
+      const temp = document.createElement('div')
+      temp.innerHTML = icon
+      iconEl.className = temp.querySelector('i')?.className ?? originalClass
+      this.element.disabled = true
+      setTimeout(() => {
+        iconEl.className = originalClass
+        this.element.disabled = false
+      }, 2000)
+    } else {
+      const original = this.element.innerHTML
+      this.element.innerHTML = icon
+      this.element.disabled = true
+      setTimeout(() => {
+        this.element.innerHTML = original
+        this.element.disabled = false
+      }, 2000)
+    }
   }
 }
