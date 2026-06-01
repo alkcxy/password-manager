@@ -81,6 +81,11 @@ class CredentialsControllerTest < ActionDispatch::IntegrationTest
     assert_select "input[name='credential[password]'][value='secret']"
   end
 
+  test "edit form: toggle button precedes password input in DOM" do
+    get edit_credential_url(@credential)
+    assert_match(/Mostra\/nascondi password.*credential\[password\]/m, response.body)
+  end
+
   test "update preserves existing password when blank password submitted" do
     patch credential_url(@credential), params: { credential: { name: 'GitHub Updated',
                                                                 username: @credential.username,
