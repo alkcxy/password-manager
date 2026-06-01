@@ -153,4 +153,18 @@ class CredentialsTest < ApplicationSystemTestCase
     assert_selector '[aria-label="Copia password"]', text: "🚫"
     assert_no_selector '[aria-label="Copia password"]', text: "🚫", wait: 5
   end
+
+  test "password field is masked by default in edit form" do
+    visit edit_credential_url(@credential)
+    assert_equal "password", find("#credential_password")[:type]
+  end
+
+  test "toggle button reveals and re-masks password in edit form" do
+    visit edit_credential_url(@credential)
+    find('[aria-label="Mostra/nascondi password"]').click
+    assert_equal "text", find("#credential_password")[:type]
+
+    find('[aria-label="Mostra/nascondi password"]').click
+    assert_equal "password", find("#credential_password")[:type]
+  end
 end

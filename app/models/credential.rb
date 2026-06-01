@@ -20,8 +20,4 @@ class Credential
   validates_presence_of :password
   validates_presence_of :url
 
-  def password_before_type_cast
-    password
-  end
-
 end
