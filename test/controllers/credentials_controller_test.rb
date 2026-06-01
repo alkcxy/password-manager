@@ -227,4 +227,19 @@ class CredentialsControllerTest < ActionDispatch::IntegrationTest
     get hide_password_credential_url(@credential)
     assert_select "a.btn[aria-label='Mostra'] i.bi-eye"
   end
+
+  # ===== Cloudflare email obfuscation protection =====
+
+  test "reveal_password: response is wrapped in email_off comments" do
+    get reveal_password_credential_url(@credential)
+    assert_match(/<!--email_off-->.*<!--\/email_off-->/m, response.body)
+  end
+
+  test "reveal_password: password with @ renders inside email_off region" do
+    cred = Credential.create!(name: "AtSign", username: "u", password: "p@ssw0rd",
+                              url: "https://x.com", note: "", user: @user)
+    get reveal_password_credential_url(cred)
+    assert_match(/<!--email_off-->.*p@ssw0rd.*<!--\/email_off-->/m, response.body)
+    assert_no_match(/href="mailto:/, response.body)
+  end
 end

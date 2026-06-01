@@ -223,4 +223,31 @@ class CredentialsTest < ApplicationSystemTestCase
     visit credentials_url
     assert_selector "button[data-bs-toggle='popover']", count: 1
   end
+
+  # ===== Cloudflare email obfuscation protection =====
+
+  test "reveals password containing @ as plain text without obfuscation" do
+    Credential.create!(name: "At Sign", username: "u", password: "p@ssw0rd",
+                       url: "https://x.com", note: "", user: @user)
+    visit credentials_url
+    within("tr", text: "At Sign") do
+      find('[aria-label="Mostra"]').click
+    end
+    assert_selector "code", text: "p@ssw0rd"
+  end
+
+  test "copies password with @ to clipboard correctly" do
+    Credential.create!(name: "At Sign", username: "u", password: "p@ssw0rd",
+                       url: "https://x.com", note: "", user: @user)
+    visit credentials_url
+    page.execute_script(<<~JS)
+      window._clipboard = [];
+      navigator.clipboard = { writeText: t => { window._clipboard.push(t); return Promise.resolve(); } };
+    JS
+    within("tr", text: "At Sign") do
+      find('[aria-label="Copia password"]').click
+      assert_selector '[aria-label="Copia password"] i.bi-clipboard-check'
+    end
+    assert_equal "p@ssw0rd", page.evaluate_script('window._clipboard[0]')
+  end
 end
