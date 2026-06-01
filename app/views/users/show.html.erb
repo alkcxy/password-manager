@@ -9,6 +9,6 @@
 </p>
 <br />
 <div class="btn-group" role="group" aria-label="Strumenti">
-  <%= link_to 'Modifica', edit_user_path(@user), class: "btn btn-primary" %>
-  <%= link_to 'Utenti', users_path, class: "btn btn-primary" %>
+  <%= link_to edit_user_path(@user), class: "btn btn-primary" do %><i class="bi bi-pencil"></i> Modifica<% end %>
+  <%= link_to users_path, class: "btn btn-primary" do %><i class="bi bi-people"></i> Utenti<% end %>
 </div>

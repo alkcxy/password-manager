@@ -118,4 +118,113 @@ class CredentialsControllerTest < ActionDispatch::IntegrationTest
     get copy_password_credential_url(other_cred), headers: { "Accept" => "application/json" }
     assert_response :not_found
   end
+
+  # ===== Issue #50: Bootstrap Icons =====
+
+  test "index: navbar shows Bootstrap icon buttons" do
+    get credentials_url
+    assert_select "a.btn i.bi-house"
+    assert_select "a.btn i.bi-key"
+    assert_select "a.btn i.bi-people"
+    assert_select "a.btn i.bi-box-arrow-right"
+  end
+
+  test "index: table is wrapped in table-responsive div" do
+    get credentials_url
+    assert_select "div.table-responsive > table.table"
+  end
+
+  test "index: table uses fixed layout with percentage widths summing to 100%" do
+    get credentials_url
+    assert_select "table[style*='table-layout: fixed']"
+    assert_select "th[style='width: 14%']", text: "Name"
+    assert_select "th[style='width: 16%']", text: "Username"
+    assert_select "th[style='width: 18%']", text: "Url"
+    assert_select "th[style='width: 30%']", text: "Password"
+    assert_select "th[style='width: 22%']"
+  end
+
+
+  test "index: username clipboard button precedes username text in DOM" do
+    get credentials_url
+    assert_select "button[aria-label='Copia username'] i.bi-clipboard"
+    assert_match(/Copia username.*#{Regexp.escape(@credential.username)}/m, response.body)
+  end
+
+  test "index: URL cell has clipboard button and link opening in new tab" do
+    get credentials_url
+    assert_select "button[aria-label='Copia url'] i.bi-clipboard"
+    assert_select "a[href='#{@credential.url}'][target='_blank'][rel='noopener noreferrer']"
+  end
+
+  test "index: password clipboard button precedes reveal button in DOM" do
+    get credentials_url
+    assert_select "button[aria-label='Copia password'] i.bi-clipboard"
+    assert_select "a.btn[aria-label='Mostra'] i.bi-eye"
+    assert_match(/Copia password.*Mostra/m, response.body)
+  end
+
+  test "index: reveal password link has button styling" do
+    get credentials_url
+    assert_select "a.btn.btn-sm.btn-outline-secondary[aria-label='Mostra'] i.bi-eye"
+  end
+
+  test "index: note popover button shown when note is present" do
+    get credentials_url
+    assert_select "button[data-bs-toggle='popover'][title='Note'] i.bi-sticky"
+    assert_match(/data-bs-content="#{Regexp.escape(@credential.note)}"/, response.body)
+  end
+
+  test "index: note popover button not rendered when note is blank" do
+    Credential.create!(name: 'No Note', username: 'u', password: 'pw',
+                       url: 'https://x.com', note: '', user: @user)
+    get credentials_url
+    assert_select "button[data-bs-toggle='popover']", count: 1
+  end
+
+  test "index: note, edit and delete buttons are in the same text-nowrap cell" do
+    get credentials_url
+    assert_select "td.text-nowrap button[aria-label='Note'] i.bi-sticky"
+    assert_select "td.text-nowrap a[aria-label='Modifica'] i.bi-pencil"
+    assert_select "td.text-nowrap a[aria-label='Cancella'] i.bi-trash"
+  end
+
+
+  test "index: search button has bi-search icon" do
+    get credentials_url
+    assert_select "button[type='submit'] i.bi-search"
+  end
+
+  test "index: new credential button has bi-plus-circle icon" do
+    get credentials_url
+    assert_select "a[href='#{new_credential_path}'] i.bi-plus-circle"
+  end
+
+  test "show: clipboard buttons present for username and password" do
+    get credential_url(@credential)
+    assert_select "button[aria-label='Copia username'] i.bi-clipboard"
+    assert_select "button[aria-label='Copia password'] i.bi-clipboard"
+  end
+
+  test "show: reveal password link has button styling and eye icon" do
+    get credential_url(@credential)
+    assert_select "a.btn.btn-sm.btn-outline-secondary[aria-label='Mostra'] i.bi-eye"
+  end
+
+  test "show: edit and credentials buttons have Bootstrap icons" do
+    get credential_url(@credential)
+    assert_select "a[href='#{edit_credential_path(@credential)}'] i.bi-pencil"
+    assert_select "a[href='#{credentials_path}'] i.bi-key"
+  end
+
+  test "reveal_password: eye-slash button precedes password code in DOM" do
+    get reveal_password_credential_url(@credential)
+    assert_select "a.btn[aria-label='Nascondi'] i.bi-eye-slash"
+    assert_match(/Nascondi.*<code>/m, response.body)
+  end
+
+  test "hide_password: eye button is present" do
+    get hide_password_credential_url(@credential)
+    assert_select "a.btn[aria-label='Mostra'] i.bi-eye"
+  end
 end

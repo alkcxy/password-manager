@@ -45,7 +45,7 @@ class UsersTest < ApplicationSystemTestCase
                          password: "password123", password_confirmation: "password123")
     visit users_url
     page.accept_confirm do
-      click_on "Cancella", match: :first
+      find('[aria-label="Cancella"]', match: :first).click
     end
 
     assert_text "User was successfully destroyed"
