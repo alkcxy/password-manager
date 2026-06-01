@@ -239,8 +239,20 @@ class CredentialsControllerTest < ActionDispatch::IntegrationTest
     assert_match(/Nascondi.*<code>/m, response.body)
   end
 
+  test "reveal_password: mobile variant uses password_m_ frame id" do
+    get reveal_password_credential_url(@credential, mobile: 1)
+    assert_select "turbo-frame[id='password_m_#{@credential.id}']"
+    assert_select "a.btn[aria-label='Nascondi'] i.bi-eye-slash"
+  end
+
   test "hide_password: eye button is present" do
     get hide_password_credential_url(@credential)
+    assert_select "a.btn[aria-label='Mostra'] i.bi-eye"
+  end
+
+  test "hide_password: mobile variant uses password_m_ frame id" do
+    get hide_password_credential_url(@credential, mobile: 1)
+    assert_select "turbo-frame[id='password_m_#{@credential.id}']"
     assert_select "a.btn[aria-label='Mostra'] i.bi-eye"
   end
 
