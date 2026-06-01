@@ -206,6 +206,16 @@ class CredentialsControllerTest < ActionDispatch::IntegrationTest
     assert_select "button[aria-label='Copia password'] i.bi-clipboard"
   end
 
+  test "show: username clipboard button precedes username text in DOM" do
+    get credential_url(@credential)
+    assert_match(/Copia username.*#{Regexp.escape(@credential.username)}/m, response.body)
+  end
+
+  test "show: password clipboard button precedes reveal button in DOM" do
+    get credential_url(@credential)
+    assert_match(/Copia password.*aria-label="Mostra"/m, response.body)
+  end
+
   test "show: reveal password link has button styling and eye icon" do
     get credential_url(@credential)
     assert_select "a.btn.btn-sm.btn-outline-secondary[aria-label='Mostra'] i.bi-eye"
