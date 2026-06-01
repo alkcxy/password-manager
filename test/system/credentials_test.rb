@@ -45,7 +45,7 @@ class CredentialsTest < ApplicationSystemTestCase
   test "destroying a Credential" do
     visit credentials_url
     page.accept_confirm do
-      click_on "Cancella", match: :first
+      find('[aria-label="Cancella"]', match: :first).click
     end
 
     assert_text "Credential was successfully destroyed"
@@ -71,8 +71,9 @@ class CredentialsTest < ApplicationSystemTestCase
 
     btn = find('[aria-label="Copia username"]', match: :first)
     btn.click
-    assert_selector '[aria-label="Copia username"]', text: "✓", match: :first
-    assert_no_selector '[aria-label="Copia username"]', text: "✓", match: :first, wait: 5
+    assert_selector '[aria-label="Copia username"] i.bi-clipboard-check', match: :first
+    assert_no_selector '[aria-label="Copia username"] i.bi-clipboard-check', match: :first, wait: 5
+    assert_selector '[aria-label="Copia username"] i.bi-clipboard', match: :first
   end
 
   test "copy password from index writes correct value to clipboard without revealing it" do
@@ -83,7 +84,7 @@ class CredentialsTest < ApplicationSystemTestCase
     JS
 
     find('[aria-label="Copia password"]', match: :first).click
-    find('[aria-label="Copia password"]', text: "✓", match: :first)
+    assert_selector '[aria-label="Copia password"] i.bi-clipboard-check', match: :first
 
     assert_equal "secret", page.evaluate_script('window._clipboard[0]')
     assert_no_text "secret"
@@ -114,7 +115,7 @@ class CredentialsTest < ApplicationSystemTestCase
       navigator.clipboard = { writeText: t => { window._clipboard.push(t); return Promise.resolve(); } };
     JS
     find('[aria-label="Copia password"]').click
-    find('[aria-label="Copia password"]', text: "✓")
+    assert_selector '[aria-label="Copia password"] i.bi-clipboard-check'
     assert_equal "secret", page.evaluate_script('window._clipboard[0]')
   end
 
@@ -126,7 +127,7 @@ class CredentialsTest < ApplicationSystemTestCase
     JS
 
     find('[aria-label="Copia password"]').click
-    find('[aria-label="Copia password"]', text: "✓")
+    assert_selector '[aria-label="Copia password"] i.bi-clipboard-check'
 
     assert_equal "secret", page.evaluate_script('window._clipboard[0]')
     assert_no_text "secret"
@@ -139,8 +140,8 @@ class CredentialsTest < ApplicationSystemTestCase
     JS
 
     find('[aria-label="Copia password"]', match: :first).click
-    assert_selector '[aria-label="Copia password"]', text: "🚫", match: :first
-    assert_no_selector '[aria-label="Copia password"]', text: "🚫", match: :first, wait: 5
+    assert_selector '[aria-label="Copia password"] i.bi-x-circle', match: :first
+    assert_no_selector '[aria-label="Copia password"] i.bi-x-circle', match: :first, wait: 5
   end
 
   test "copy password shows error icon when fetch fails from show view" do
@@ -150,8 +151,8 @@ class CredentialsTest < ApplicationSystemTestCase
     JS
 
     find('[aria-label="Copia password"]').click
-    assert_selector '[aria-label="Copia password"]', text: "🚫"
-    assert_no_selector '[aria-label="Copia password"]', text: "🚫", wait: 5
+    assert_selector '[aria-label="Copia password"] i.bi-x-circle'
+    assert_no_selector '[aria-label="Copia password"] i.bi-x-circle', wait: 5
   end
 
   test "password field is masked by default in edit form" do
@@ -166,5 +167,87 @@ class CredentialsTest < ApplicationSystemTestCase
 
     find('[aria-label="Mostra/nascondi password"]').click
     assert_equal "password", find("#credential_password")[:type]
+  end
+
+  # ===== Issue #50: Bootstrap Icons =====
+
+  test "copy url from index writes correct value to clipboard" do
+    visit credentials_url
+    page.execute_script(<<~JS)
+      window._clipboard = [];
+      navigator.clipboard = { writeText: t => { window._clipboard.push(t); return Promise.resolve(); } };
+    JS
+
+    find('[aria-label="Copia url"]', match: :first).click
+
+    assert_equal @credential.url, page.evaluate_script('window._clipboard[0]')
+  end
+
+  test "clipboard icon shows bi-clipboard-check on copy then reverts to bi-clipboard" do
+    visit credentials_url
+    page.execute_script(<<~JS)
+      navigator.clipboard = { writeText: () => Promise.resolve() };
+    JS
+
+    find('[aria-label="Copia username"]', match: :first).click
+    assert_selector '[aria-label="Copia username"] i.bi-clipboard-check', match: :first
+    assert_no_selector '[aria-label="Copia username"] i.bi-clipboard-check', match: :first, wait: 5
+    assert_selector '[aria-label="Copia username"] i.bi-clipboard', match: :first
+  end
+
+  test "clicking note button opens popover with note content" do
+    visit credentials_url
+    find("button[data-bs-toggle='popover']").click
+    assert_selector ".popover-body", text: @credential.note
+  end
+
+  test "clicking a second note button closes the first popover" do
+    cred2 = Credential.create!(name: "Bitbucket", username: "u2", password: "pw",
+                               url: "https://bitbucket.com", note: "Work account", user: @user)
+    visit credentials_url
+
+    first_btn = find("button[data-bs-content='#{@credential.note}']")
+    second_btn = find("button[data-bs-content='#{cred2.note}']")
+
+    first_btn.click
+    assert_selector ".popover-body", text: @credential.note
+
+    second_btn.click
+    assert_selector ".popover-body", text: cred2.note
+    assert_no_selector ".popover-body", text: @credential.note
+  end
+
+  test "note button not shown for credentials without a note" do
+    Credential.create!(name: "No Note", username: "u2", password: "pw",
+                       url: "https://x.com", note: "", user: @user)
+    visit credentials_url
+    assert_selector "button[data-bs-toggle='popover']", count: 1
+  end
+
+  # ===== Cloudflare email obfuscation protection =====
+
+  test "reveals password containing @ as plain text without obfuscation" do
+    Credential.create!(name: "At Sign", username: "u", password: "p@ssw0rd",
+                       url: "https://x.com", note: "", user: @user)
+    visit credentials_url
+    within("tr", text: "At Sign") do
+      find('[aria-label="Mostra"]').click
+    end
+    assert_selector "code", text: "p@ssw0rd"
+  end
+
+  test "copies password with @ to clipboard correctly" do
+    Credential.create!(name: "At Sign", username: "u", password: "p@ssw0rd",
+                       url: "https://x.com", note: "", user: @user)
+    visit credentials_url
+    page.execute_script(<<~JS)
+      window._clipboard = [];
+      navigator.clipboard = { writeText: t => { window._clipboard.push(t); return Promise.resolve(); } };
+    JS
+    within("tr", text: "At Sign") do
+      find('[aria-label="Copia password"]').click
+      assert_selector '[aria-label="Copia password"] i.bi-clipboard-check'
+    end
+    assert_equal "p@ssw0rd", page.evaluate_script('window._clipboard[0]')
   end
 end

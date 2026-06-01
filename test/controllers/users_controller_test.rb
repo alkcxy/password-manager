@@ -70,4 +70,24 @@ class UsersControllerTest < ActionDispatch::IntegrationTest
     assert_select "ul.pagination"
     assert_select "li.page-item"
   end
+
+  # ===== Issue #50: Bootstrap Icons =====
+
+  test "index: action buttons grouped in a single text-nowrap cell with icons" do
+    get users_url
+    assert_select "td.text-nowrap a[aria-label='Visualizza'] i.bi-eye"
+    assert_select "td.text-nowrap a[aria-label='Modifica'] i.bi-pencil"
+    assert_select "td.text-nowrap a[aria-label='Cancella'] i.bi-trash"
+  end
+
+  test "index: new user button has person-plus icon" do
+    get users_url
+    assert_select "a[href='#{new_user_path}'] i.bi-person-plus"
+  end
+
+  test "show: edit button has pencil icon and users link has people icon" do
+    get user_url(@user)
+    assert_select "a[href='#{edit_user_path(@user)}'] i.bi-pencil"
+    assert_select "a[href='#{users_path}'] i.bi-people"
+  end
 end

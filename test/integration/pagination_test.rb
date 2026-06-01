@@ -64,4 +64,34 @@ class PaginationTest < ActionDispatch::IntegrationTest
     assert_match(/utenti/, response.body)
     assert_match(/Visualizzando/, response.body)
   end
+
+  # ===== Issue #50: chevron icons in pagination =====
+
+  test "credentials: paginator uses chevron icons for next and last page links" do
+    26.times { |i| Credential.create!(name: "Cred #{i}", username: "u", password: "p", url: "https://x.com", note: "", user: @user) }
+    get credentials_url
+    assert_select "a.page-link i.bi-chevron-right"
+    assert_select "a.page-link i.bi-chevron-double-right"
+  end
+
+  test "credentials: paginator does not use text-based navigation labels" do
+    26.times { |i| Credential.create!(name: "Cred #{i}", username: "u", password: "p", url: "https://x.com", note: "", user: @user) }
+    get credentials_url
+    assert_no_match(/Successiva/, response.body)
+    assert_no_match(/Prima/, response.body)
+  end
+
+  test "credentials: paginator on page 2 shows prev and first chevron icons" do
+    26.times { |i| Credential.create!(name: "Cred #{i}", username: "u", password: "p", url: "https://x.com", note: "", user: @user) }
+    get credentials_url, params: { page: 2 }
+    assert_select "a.page-link i.bi-chevron-left"
+    assert_select "a.page-link i.bi-chevron-double-left"
+  end
+
+  test "users: paginator uses chevron icons for next and last page links" do
+    25.times { |i| User.create!(name: "User #{i}", email: "u#{i}@example.com", password: "password123", password_confirmation: "password123") }
+    get users_url
+    assert_select "a.page-link i.bi-chevron-right"
+    assert_select "a.page-link i.bi-chevron-double-right"
+  end
 end

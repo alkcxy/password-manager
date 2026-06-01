@@ -5,7 +5,7 @@
     <tr>
       <th>Name</th>
       <th>Email</th>
-      <th colspan="3"></th>
+      <th colspan="1"></th>
     </tr>
   </thead>
 
@@ -14,9 +14,27 @@
       <tr>
         <td><%= user.name %></td>
         <td><%= user.email %></td>
-        <td><%= link_to 'Visualizza', user %></td>
-        <td><%= link_to 'Modifica', edit_user_path(user) %></td>
-        <td><%= link_to 'Cancella', user, data: { turbo_method: :delete, turbo_confirm: 'Sei sicuro?' } %></td>
+        <td class="text-nowrap">
+          <%= link_to user,
+                class: "btn btn-sm btn-outline-secondary",
+                title: "Visualizza",
+                aria: { label: "Visualizza" } do %>
+            <i class="bi bi-eye"></i>
+          <% end %>
+          <%= link_to edit_user_path(user),
+                class: "btn btn-sm btn-outline-secondary ms-1",
+                title: "Modifica",
+                aria: { label: "Modifica" } do %>
+            <i class="bi bi-pencil"></i>
+          <% end %>
+          <%= link_to user,
+                class: "btn btn-sm btn-outline-danger ms-1",
+                title: "Cancella",
+                aria: { label: "Cancella" },
+                data: { turbo_method: :delete, turbo_confirm: 'Sei sicuro?' } do %>
+            <i class="bi bi-trash"></i>
+          <% end %>
+        </td>
       </tr>
     <% end %>
   </tbody>
@@ -27,6 +45,6 @@
   <%= paginate @users %>
 </div>
 <div class="btn-group" role="group" aria-label="Strumenti">
-  <%= link_to 'Nuovo Utente', new_user_path, class: "btn btn-primary" %>
-  <%= link_to 'Home', welcome_path, class: "btn btn-primary" %>
+  <%= link_to new_user_path, class: "btn btn-primary" do %><i class="bi bi-person-plus"></i> Nuovo Utente<% end %>
+  <%= link_to welcome_path, class: "btn btn-primary" do %><i class="bi bi-house"></i> Home<% end %>
 </div>
