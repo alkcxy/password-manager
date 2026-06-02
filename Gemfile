@@ -16,6 +16,7 @@ gem 'stimulus-rails'
 gem 'propshaft'
 
 gem 'bootsnap', require: false
+gem 'rack-attack'
 
 group :development, :test do
   gem 'byebug', platforms: [:mri, :mingw, :x64_mingw]
