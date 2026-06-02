@@ -1,7 +1,7 @@
 Rails.application.routes.draw do
   namespace :api do
     resources :sessions, only: [:create, :destroy], param: :token
-    # Story D: Api::CredentialsController (index, create)
+    resources :credentials, only: [:index, :show, :create]
   end
 
   get 'login', to: 'sessions#new'

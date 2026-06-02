@@ -56,9 +56,10 @@ A new `ApiToken` Mongoid model will store tokens: `token` (opaque, SecureRandom 
 | `/api/sessions` | POST | `{ email, password }` | `{ token, expires_at }` |
 | `/api/sessions/:token` | DELETE | — | `204 No Content` |
 | `/api/credentials` | GET | `?domain=<host>` | `[{ id, name, username, url }]` |
+| `/api/credentials/:id` | GET | — | `{ id, name, username, url, password, note }` |
 | `/api/credentials` | POST | `{ name, username, password, url, note }` | `{ id, name }` |
 
-**Password is never returned by `GET /api/credentials`** — only metadata (name, username, url). This keeps credential exposure minimal.
+**`GET /api/credentials` (list) never returns the password** — only metadata. The password is exposed only via `GET /api/credentials/:id` (single credential), used by the extension popup to autofill the password field.
 
 All responses are JSON. All endpoints require `Authorization: Bearer <token>` except `POST /api/sessions`.
 
@@ -67,7 +68,7 @@ All responses are JSON. All endpoints require `Authorization: Bearer <token>` ex
 - New namespace: `app/controllers/api/`
 - `Api::BaseController`: reads and validates Bearer token, sets `current_user`
 - `Api::SessionsController`: create/destroy
-- `Api::CredentialsController`: index (filtered by domain via `url` field), create
+- `Api::CredentialsController`: index (filtered by domain via `url` field), show (returns password for autofill), create
 - CORS: add `rack-cors` gem, whitelist `chrome-extension://<extension-id>`
 - No changes to existing web controllers
 
@@ -115,7 +116,7 @@ Token expiry
 | No offline support | Extension needs the Rails app reachable on the network |
 | Extension ID changes on unpacked reload | CORS config must be updated each time; fixed once published on Chrome Web Store |
 | No Firefox support | MV3 divergence makes cross-browser support non-trivial; out of scope |
-| No password retrieval via extension | `GET /api/credentials` returns metadata only; a separate reveal endpoint can be added later |
+| No password retrieval via extension | `GET /api/credentials` returns metadata only; use `GET /api/credentials/:id` to retrieve the password for autofill |
 | Cross-origin iframes | Login forms embedded from a different domain (Auth0, Okta, Stripe) are inaccessible to the content script — hard browser limit |
 | Shadow DOM | Form fields inside Shadow DOM components may not be reachable via standard `querySelector` |
 | Non-standard SPA event handling | Some React/Vue apps require specific synthetic events to detect programmatically injected values; requires per-site testing |
