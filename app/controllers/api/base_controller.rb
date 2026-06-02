@@ -11,7 +11,7 @@ module Api
                       status: :unauthorized
       end
 
-      @api_token = ApiToken.find_by(token: raw_token)
+      @api_token = ApiToken.where(token: raw_token).first
       unless @api_token && !@api_token.expired?
         return render json: { error: "Invalid or expired token" },
                       status: :unauthorized
