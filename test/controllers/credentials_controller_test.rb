@@ -143,8 +143,8 @@ class CredentialsControllerTest < ActionDispatch::IntegrationTest
     get credentials_url
     assert_select "table[style*='table-layout: fixed']"
     assert_select "th[style='width: 12%']", text: "Name"
-    assert_select "th[style='width: 14%']", text: "Username"
-    assert_select "th[style='width: 24%']", text: "Url"
+    assert_select "th[style='width: 20%']", text: "Username"
+    assert_select "th[style='width: 18%']", text: "Url"
     assert_select "th[style='width: 28%']", text: "Password"
     assert_select "th[style='width: 22%']"
   end
