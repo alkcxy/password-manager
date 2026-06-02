@@ -1,4 +1,9 @@
 Rails.application.routes.draw do
+  namespace :api do
+    # Story C: Api::SessionsController (login/logout)
+    # Story D: Api::CredentialsController (index, create)
+  end
+
   get 'login', to: 'sessions#new'
   post 'login', to: 'sessions#create'
   get 'welcome', to: 'sessions#welcome'
