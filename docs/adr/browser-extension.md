@@ -56,7 +56,26 @@ Add the Base64 output to `manifest.json`:
 
 The resulting ID (visible in `chrome://extensions` after loading unpacked) is set once in the Rails environment as `EXTENSION_ID` and never changes. The private key (`key.pem`) must be kept secret and excluded from version control.
 
-**HTTP in development**: Chrome treats `localhost` as a secure context — the extension can call `http://localhost:3000` without HTTPS. No special setup needed for local testing.
+**HTTP in development (localhost only)**: Chrome treats `localhost` as a secure context — the extension can call `http://localhost:3000` without HTTPS. No special setup needed when the browser and the Rails server are on the same machine.
+
+**HTTP in development (LAN, server on a different machine)**: `http://192.168.x.x` is not a secure context — Chrome blocks requests from the extension to a plain HTTP LAN address. Use `mkcert` to issue a locally-trusted certificate for the LAN IP:
+
+```bash
+# install mkcert and its root CA (once per machine)
+mkcert -install
+
+# issue a cert for the LAN IP (replace with your actual IP)
+mkcert 192.168.1.100
+# produces: 192.168.1.100.pem  192.168.1.100-key.pem
+```
+
+Then start Puma with TLS:
+
+```bash
+bin/rails server -b "ssl://0.0.0.0:3000?key=192.168.1.100-key.pem&cert=192.168.1.100.pem"
+```
+
+The extension Options page should be set to `https://192.168.1.100:3000`. The mkcert root CA must be installed on every machine whose browser will connect (run `mkcert -install` there too).
 
 ### Configurable base URL
 
