@@ -116,6 +116,9 @@ Token expiry
 | Extension ID changes on unpacked reload | CORS config must be updated each time; fixed once published on Chrome Web Store |
 | No Firefox support | MV3 divergence makes cross-browser support non-trivial; out of scope |
 | No password retrieval via extension | `GET /api/credentials` returns metadata only; a separate reveal endpoint can be added later |
+| Cross-origin iframes | Login forms embedded from a different domain (Auth0, Okta, Stripe) are inaccessible to the content script — hard browser limit |
+| Shadow DOM | Form fields inside Shadow DOM components may not be reachable via standard `querySelector` |
+| Non-standard SPA event handling | Some React/Vue apps require specific synthetic events to detect programmatically injected values; requires per-site testing |
 
 ---
 
