@@ -58,6 +58,9 @@ build-iPhoneSimulator/
 node_modules
 vendor
 .DS_Store
+bin/test-local
+bin/dev-local
+mise.toml
 zscaler_ca.pem
 log/
 /public/assets
