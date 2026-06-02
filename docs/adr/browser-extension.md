@@ -31,11 +31,32 @@ Plain JavaScript + ES modules — no Node.js build pipeline. Consistent with the
 
 ### Distribution
 
-Published on the Chrome Web Store ($5 one-time developer fee). This gives the extension a stable, permanent ID — which means the CORS whitelist in Rails never needs to change after the initial setup.
+Published on the Chrome Web Store ($5 one-time developer fee).
 
 For development, load as unpacked extension:
 - Vivaldi: `vivaldi://extensions`
 - Chrome: `chrome://extensions`
+
+### Stable extension ID (development + production)
+
+The extension ID is derived deterministically from a keypair baked into `manifest.json`. This means the ID is stable across reloads and reinstalls — no need to update the CORS config each time, and no dependency on Chrome Web Store publication for a fixed ID.
+
+Generate the keypair once:
+
+```bash
+openssl genrsa 2048 | openssl pkcs8 -topk8 -nocrypt -out extension/key.pem
+openssl rsa -in extension/key.pem -pubout -outform DER | base64 -w0
+```
+
+Add the Base64 output to `manifest.json`:
+
+```json
+"key": "<base64-encoded-public-key>"
+```
+
+The resulting ID (visible in `chrome://extensions` after loading unpacked) is set once in the Rails environment as `EXTENSION_ID` and never changes. The private key (`key.pem`) must be kept secret and excluded from version control.
+
+**HTTP in development**: Chrome treats `localhost` as a secure context — the extension can call `http://localhost:3000` without HTTPS. No special setup needed for local testing.
 
 ### Configurable base URL
 
@@ -102,7 +123,7 @@ Token expiry
 ## Security considerations
 
 - **HTTPS assumed.** The app is deployed on a public domain under HTTPS — no self-signed cert setup needed.
-- **CORS:** whitelist only `chrome-extension://<extension-id>`. With Chrome Web Store publication the ID is permanent, so this is a one-time configuration.
+- **CORS:** whitelist only `chrome-extension://<extension-id>`. The ID is stable because it is derived from the keypair in `manifest.json` — set `EXTENSION_ID` env var once, never touch it again.
 - **Rate-limit** `POST /api/sessions` to prevent brute-force (e.g. `rack-attack`, 5 req/min per IP).
 - **Token rotation:** not implemented in v1; acceptable for personal use.
 - **No auto-submit:** the content script fills fields only — the user always clicks Submit themselves.
@@ -114,7 +135,6 @@ Token expiry
 | Limitation | Notes |
 |---|---|
 | No offline support | Extension needs the Rails app reachable on the network |
-| Extension ID changes on unpacked reload | CORS config must be updated each time; fixed once published on Chrome Web Store |
 | No Firefox support | MV3 divergence makes cross-browser support non-trivial; out of scope |
 | No password retrieval via extension | `GET /api/credentials` returns metadata only; use `GET /api/credentials/:id` to retrieve the password for autofill |
 | Cross-origin iframes | Login forms embedded from a different domain (Auth0, Okta, Stripe) are inaccessible to the content script — hard browser limit |
