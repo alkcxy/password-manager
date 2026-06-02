@@ -126,18 +126,18 @@ Token expiry
 
 Le seguenti issue vanno lavorate in ordine — ogni step è prerequisito del successivo.
 
-| # | Storia | Dipende da |
-|---|---|---|
-| A | ~~HTTPS/TLS setup~~ _(non necessario: dominio pubblico con HTTPS)_ | — |
-| B | Rails API layer: `ApiToken` model + `Api::BaseController` + token auth | — |
-| C | Rails API: `Api::SessionsController` (login/logout) + `rack-attack` | B |
-| D | Rails API: `Api::CredentialsController` (index per domain, create) + `rack-cors` | B |
-| E | Browser extension: content script (capture + save prompt) | C, D |
-| F | Browser extension: background service worker (token management, API calls, URL configurabile) | C, D |
-| G | Browser extension: options page (URL base configurabile, salvataggio in `chrome.storage.sync`) | — |
-| H | Browser extension: popup (credential list, fill trigger, login/logout) | E, F, G |
-| I | Web app: banner/suggerimento installazione extension | — |
-| J | `.dockerignore`: escludere `extension/` e `docs/` dall'immagine Docker | — |
+| # | Storia | Issue | Dipende da |
+|---|---|---|---|
+| A | ~~HTTPS/TLS setup~~ _(non necessario: dominio pubblico con HTTPS)_ | [#61](https://github.com/alkcxy/password-manager/issues/61) | — |
+| B | ~~Rails API layer: `ApiToken` model + `Api::BaseController` + token auth~~ | [#62](https://github.com/alkcxy/password-manager/issues/62) | — |
+| C | Rails API: `Api::SessionsController` (login/logout) + `rack-attack` | [#63](https://github.com/alkcxy/password-manager/issues/63) | B |
+| D | Rails API: `Api::CredentialsController` (index per domain, create) + `rack-cors` | [#64](https://github.com/alkcxy/password-manager/issues/64) | B |
+| E | Browser extension: content script (capture + save prompt) | [#65](https://github.com/alkcxy/password-manager/issues/65) | C, D |
+| F | Browser extension: background service worker (token management, API calls, URL configurabile) | [#66](https://github.com/alkcxy/password-manager/issues/66) | C, D |
+| G | Browser extension: options page (URL base configurabile, salvataggio in `chrome.storage.sync`) | [#68](https://github.com/alkcxy/password-manager/issues/68) | — |
+| H | Browser extension: popup (credential list, fill trigger, login/logout) | [#67](https://github.com/alkcxy/password-manager/issues/67) | E, F, G |
+| I | Web app: banner/suggerimento installazione extension | [#69](https://github.com/alkcxy/password-manager/issues/69) | — |
+| J | `.dockerignore`: escludere `extension/` e `docs/` dall'immagine Docker | — | — |
 
 ---
 

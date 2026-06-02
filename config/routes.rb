@@ -1,6 +1,6 @@
 Rails.application.routes.draw do
   namespace :api do
-    # Story C: Api::SessionsController (login/logout)
+    resources :sessions, only: [:create, :destroy], param: :token
     # Story D: Api::CredentialsController (index, create)
   end
 
