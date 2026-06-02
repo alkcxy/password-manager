@@ -2,6 +2,9 @@ require "test_helper"
 
 class Api::CredentialsControllerTest < ActionDispatch::IntegrationTest
   setup do
+    Credential.remove_indexes
+    Credential.create_indexes
+
     @user = User.create!(
       name: "Alice",
       email: "alice@example.com",
@@ -173,5 +176,46 @@ class Api::CredentialsControllerTest < ActionDispatch::IntegrationTest
            params: { username: "alice", password: "pass", url: "https://test.com" },
            headers: { "Authorization" => "Bearer #{@token.token}" }, as: :json
     end
+  end
+
+  # GET /api/credentials?q=
+
+  test "index with q returns credentials matching name" do
+    get "/api/credentials", params: { q: "GitHub" },
+        headers: { "Authorization" => "Bearer #{@token.token}" }, as: :json
+    assert_response :ok
+    json = JSON.parse(response.body)
+    assert json.any? { |c| c["id"] == @github_cred.id.to_s }
+    assert json.none? { |c| c["id"] == @gitlab_cred.id.to_s }
+  end
+
+  test "index with q returns empty array when no name matches" do
+    get "/api/credentials", params: { q: "nonexistent" },
+        headers: { "Authorization" => "Bearer #{@token.token}" }, as: :json
+    assert_response :ok
+    assert_equal [], JSON.parse(response.body)
+  end
+
+  test "index with q does not return other users credentials" do
+    get "/api/credentials", params: { q: "GitHub" },
+        headers: { "Authorization" => "Bearer #{@token.token}" }, as: :json
+    assert_response :ok
+    json = JSON.parse(response.body)
+    assert json.none? { |c| c["id"] == @other_cred.id.to_s }
+  end
+
+  test "index with q and domain applies both filters" do
+    get "/api/credentials", params: { q: "GitHub", domain: "github.com" },
+        headers: { "Authorization" => "Bearer #{@token.token}" }, as: :json
+    assert_response :ok
+    json = JSON.parse(response.body)
+    assert json.any? { |c| c["id"] == @github_cred.id.to_s }
+    assert json.none? { |c| c["id"] == @gitlab_cred.id.to_s }
+  end
+
+  test "index with q without token returns 401" do
+    get "/api/credentials", params: { q: "GitHub" }, as: :json
+    assert_response :unauthorized
+    assert_equal "application/json; charset=utf-8", response.content_type
   end
 end

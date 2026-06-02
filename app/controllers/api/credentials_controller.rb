@@ -1,11 +1,15 @@
 module Api
   class CredentialsController < BaseController
     def index
-      credentials = if params[:domain].present?
+      credentials = @current_user.credentials
+
+      if params[:domain].present?
         escaped = Regexp.escape(params[:domain])
-        @current_user.credentials.where(url: /(?:\/\/|\.)#{escaped}(?:\/|:|$)/)
-      else
-        @current_user.credentials
+        credentials = credentials.where(url: /(?:\/\/|\.)#{escaped}(?:\/|:|$)/)
+      end
+
+      if params[:q].present?
+        credentials = credentials.where("$text" => { "$search" => params[:q] })
       end
 
       render json: credentials.map { |c| serialize_summary(c) }

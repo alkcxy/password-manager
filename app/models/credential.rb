@@ -11,7 +11,7 @@ class Credential
   belongs_to :user
 
   index({ name: 1, user: 1 }, { unique: true })
-  index "$**": "text"
+  index({ user_id: 1, name: "text", url: "text" })
 
   validates :user, uniqueness: { scope: :name, case_sensitive: false }
   validates_presence_of :name
