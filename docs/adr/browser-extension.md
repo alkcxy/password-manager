@@ -31,11 +31,15 @@ Plain JavaScript + ES modules — no Node.js build pipeline. Consistent with the
 
 ### Distribution
 
-Load as unpacked extension:
+Published on the Chrome Web Store ($5 one-time developer fee). This gives the extension a stable, permanent ID — which means the CORS whitelist in Rails never needs to change after the initial setup.
+
+For development, load as unpacked extension:
 - Vivaldi: `vivaldi://extensions`
 - Chrome: `chrome://extensions`
 
-This is the pragmatic path for a personal self-hosted tool — no Chrome Web Store review needed.
+### Configurable base URL
+
+The extension must work with any self-hosted instance. The base URL of the Rails app (e.g. `https://pm.example.com`) is stored in `chrome.storage.sync` via an **Options page** and read by the background service worker on every API call. This is required for Chrome Web Store publication.
 
 ---
 
@@ -96,8 +100,8 @@ Token expiry
 
 ## Security considerations
 
-- **HTTPS is mandatory.** Without TLS, tokens are exposed in transit. Document self-signed cert setup for Raspberry Pi / LAN deployment (mkcert or Caddy auto-HTTPS).
-- **CORS:** whitelist only `chrome-extension://<extension-id>`. Note: the extension ID changes on every unpacked reload — document the update step.
+- **HTTPS assumed.** The app is deployed on a public domain under HTTPS — no self-signed cert setup needed.
+- **CORS:** whitelist only `chrome-extension://<extension-id>`. With Chrome Web Store publication the ID is permanent, so this is a one-time configuration.
 - **Rate-limit** `POST /api/sessions` to prevent brute-force (e.g. `rack-attack`, 5 req/min per IP).
 - **Token rotation:** not implemented in v1; acceptable for personal use.
 - **No auto-submit:** the content script fills fields only — the user always clicks Submit themselves.
@@ -109,8 +113,7 @@ Token expiry
 | Limitation | Notes |
 |---|---|
 | No offline support | Extension needs the Rails app reachable on the network |
-| HTTP-only deployments | Token in `chrome.storage.local` is safe, but transit is not — HTTPS is required |
-| Extension ID changes on unpacked reload | CORS config must be updated each time |
+| Extension ID changes on unpacked reload | CORS config must be updated each time; fixed once published on Chrome Web Store |
 | No Firefox support | MV3 divergence makes cross-browser support non-trivial; out of scope |
 | No password retrieval via extension | `GET /api/credentials` returns metadata only; a separate reveal endpoint can be added later |
 
@@ -122,13 +125,16 @@ Le seguenti issue vanno lavorate in ordine — ogni step è prerequisito del suc
 
 | # | Storia | Dipende da |
 |---|---|---|
-| A | HTTPS/TLS setup per Raspberry Pi / LAN (mkcert o Caddy) | — |
-| B | Rails API layer: `ApiToken` model + `Api::BaseController` + token auth | A |
+| A | ~~HTTPS/TLS setup~~ _(non necessario: dominio pubblico con HTTPS)_ | — |
+| B | Rails API layer: `ApiToken` model + `Api::BaseController` + token auth | — |
 | C | Rails API: `Api::SessionsController` (login/logout) + `rack-attack` | B |
 | D | Rails API: `Api::CredentialsController` (index per domain, create) + `rack-cors` | B |
 | E | Browser extension: content script (capture + save prompt) | C, D |
-| F | Browser extension: background service worker (token management, API calls) | C, D |
-| G | Browser extension: popup (credential list, fill trigger, login/logout) | E, F |
+| F | Browser extension: background service worker (token management, API calls, URL configurabile) | C, D |
+| G | Browser extension: options page (URL base configurabile, salvataggio in `chrome.storage.sync`) | — |
+| H | Browser extension: popup (credential list, fill trigger, login/logout) | E, F, G |
+| I | Web app: banner/suggerimento installazione extension | — |
+| J | `.dockerignore`: escludere `extension/` e `docs/` dall'immagine Docker | — |
 
 ---
 
