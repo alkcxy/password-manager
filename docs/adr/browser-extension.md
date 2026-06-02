@@ -116,8 +116,23 @@ Token expiry
 
 ---
 
+## Implementation roadmap
+
+Le seguenti issue vanno lavorate in ordine — ogni step è prerequisito del successivo.
+
+| # | Storia | Dipende da |
+|---|---|---|
+| A | HTTPS/TLS setup per Raspberry Pi / LAN (mkcert o Caddy) | — |
+| B | Rails API layer: `ApiToken` model + `Api::BaseController` + token auth | A |
+| C | Rails API: `Api::SessionsController` (login/logout) + `rack-attack` | B |
+| D | Rails API: `Api::CredentialsController` (index per domain, create) + `rack-cors` | B |
+| E | Browser extension: content script (capture + save prompt) | C, D |
+| F | Browser extension: background service worker (token management, API calls) | C, D |
+| G | Browser extension: popup (credential list, fill trigger, login/logout) | E, F |
+
+---
+
 ## What this ADR does NOT cover
 
-- Implementation of the API token feature — tracked as a separate issue (blocked by this ADR)
-- HTTPS/TLS setup for the Raspberry Pi deployment — tracked separately
-- Extension UI design details
+- Firefox support (MV3 divergence, out of scope)
+- Extension UI design details beyond the functional requirements above
