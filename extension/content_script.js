@@ -1,6 +1,8 @@
 (function () {
   'use strict';
 
+  console.log('[PM] content script caricato su', window.location.href);
+
   const BANNER_ID = 'pm-save-banner';
   const attachedForms = new WeakSet();
 
