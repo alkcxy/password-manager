@@ -97,13 +97,9 @@
     });
   }
 
-  if (document.body) {
-    new MutationObserver(scanForms).observe(document.body, { childList: true, subtree: true });
-    scanForms();
-  } else {
-    document.addEventListener('DOMContentLoaded', () => {
-      new MutationObserver(scanForms).observe(document.body, { childList: true, subtree: true });
-      scanForms();
-    });
-  }
+  // Osserva documentElement invece di body: Turbo Drive sostituisce document.body
+  // ad ogni navigazione, rendendo inutile un observer attaccato al vecchio body.
+  new MutationObserver(scanForms).observe(document.documentElement, { childList: true, subtree: true });
+  document.addEventListener('turbo:load', scanForms);
+  scanForms();
 }());
