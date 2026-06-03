@@ -4,10 +4,11 @@
   const BANNER_ID = 'pm-save-banner';
   const STORAGE_KEY = 'pmPendingCred';
   const attachedForms = new WeakSet();
+  const attachedFields = new WeakSet();
   let pendingCredential = null;
 
-  function findUsernameField(form, passwordField) {
-    const inputs = Array.from(form.querySelectorAll('input'));
+  function findUsernameField(container, passwordField) {
+    const inputs = Array.from(container.querySelectorAll('input'));
     const pwIndex = inputs.indexOf(passwordField);
     const before = pwIndex >= 0 ? inputs.slice(0, pwIndex) : inputs;
     const candidates = before.filter(i =>
@@ -15,6 +16,27 @@
       /user|email|login|name/i.test([i.name, i.id, i.placeholder].join(' '))
     );
     return candidates[candidates.length - 1] || null;
+  }
+
+  // Risale il DOM cercando il container che contiene anche un campo username
+  function findContainer(passwordField) {
+    let el = passwordField.parentElement;
+    while (el && el !== document.body) {
+      if (el.querySelector('input[type="text"], input[type="email"], input[type="tel"]')) return el;
+      el = el.parentElement;
+    }
+    return document.body;
+  }
+
+  // Risale il DOM cercando il bottone di submit più vicino
+  function findSubmitButton(passwordField) {
+    let el = passwordField.parentElement;
+    for (let i = 0; i < 8 && el && el !== document.body; i++) {
+      const btn = el.querySelector('button[type="submit"], button:not([type="button"]), input[type="submit"]');
+      if (btn) return btn;
+      el = el.parentElement;
+    }
+    return null;
   }
 
   function removeBanner() {
@@ -86,25 +108,45 @@
     }
   }
 
+  function captureCredential(passwordField, container) {
+    if (!passwordField.value) return;
+    const usernameField = findUsernameField(container, passwordField);
+    let name = window.location.href;
+    try { name = new URL(window.location.href).hostname; } catch (_) {}
+    storePending({
+      name,
+      username: usernameField ? usernameField.value : '',
+      password: passwordField.value,
+      url: window.location.href,
+    });
+  }
+
+  // Caso 1: campo password dentro un <form>
   function attachToForm(form) {
     if (attachedForms.has(form)) return;
     attachedForms.add(form);
-
     form.addEventListener('submit', () => {
       const passwordField = form.querySelector('input[type="password"]');
-      if (!passwordField || !passwordField.value) return;
-
-      const usernameField = findUsernameField(form, passwordField);
-      let name = window.location.href;
-      try { name = new URL(window.location.href).hostname; } catch (_) {}
-
-      storePending({
-        name,
-        username: usernameField ? usernameField.value : '',
-        password: passwordField.value,
-        url: window.location.href,
-      });
+      if (passwordField) captureCredential(passwordField, form);
     }, true);
+  }
+
+  // Caso 2: campo password senza <form> (SPA tipo Authelia, React, ecc.)
+  function attachToField(passwordField) {
+    if (attachedFields.has(passwordField)) return;
+    attachedFields.add(passwordField);
+
+    const container = findContainer(passwordField);
+    const capture = () => captureCredential(passwordField, container);
+
+    // Click sul bottone di submit
+    const submitBtn = findSubmitButton(passwordField);
+    if (submitBtn) submitBtn.addEventListener('click', capture);
+
+    // Invio con Enter sul campo password o username
+    container.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') capture();
+    });
   }
 
   function onNavigated() {
@@ -116,6 +158,7 @@
     document.querySelectorAll('input[type="password"]').forEach(field => {
       const form = field.closest('form');
       if (form) attachToForm(form);
+      else attachToField(field);
     });
   }
 
