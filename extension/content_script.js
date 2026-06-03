@@ -59,12 +59,12 @@
 
   function storePending(cred) {
     pendingCredential = cred;
-    chrome.storage.session.set({ [STORAGE_KEY]: cred });
+    chrome.storage.local.set({ [STORAGE_KEY]: cred });
   }
 
   function clearPending() {
     pendingCredential = null;
-    chrome.storage.session.remove(STORAGE_KEY);
+    chrome.storage.local.remove(STORAGE_KEY);
   }
 
   function maybeShowBanner(cred) {
@@ -78,12 +78,11 @@
 
   function showPendingBannerIfSucceeded() {
     if (pendingCredential) {
-      // Stesso contesto JS (SPA/Turbo): credenziale ancora in memoria
       maybeShowBanner(pendingCredential);
     } else {
-      // Contesto ricaricato (form tradizionale con redirect): leggi da storage
-      chrome.storage.session.get(STORAGE_KEY, (result) => {
-        maybeShowBanner(result[STORAGE_KEY] || null);
+      chrome.storage.local.get(STORAGE_KEY, (result) => {
+        if (chrome.runtime.lastError) return;
+        maybeShowBanner((result && result[STORAGE_KEY]) || null);
       });
     }
   }
