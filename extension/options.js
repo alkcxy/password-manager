@@ -6,6 +6,7 @@ function validateUrl(value) {
   } catch {
     return "URL non valida.";
   }
+  if (!parsed.hostname) return "URL non valida.";
   if (parsed.protocol !== "https:") return "L'URL deve usare HTTPS.";
   return null;
 }
