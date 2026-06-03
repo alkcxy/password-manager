@@ -170,6 +170,18 @@ class Api::CredentialsControllerTest < ActionDispatch::IntegrationTest
     assert json["errors"].present?
   end
 
+  test "create returns 422 with JSON when credential name already exists for same user" do
+    assert_no_difference -> { Credential.count } do
+      post "/api/credentials",
+           params: { name: @github_cred.name, username: "alice", password: "pass", url: "https://github.com" },
+           headers: { "Authorization" => "Bearer #{@token.token}" }, as: :json
+    end
+    assert_response :unprocessable_entity
+    assert_equal "application/json; charset=utf-8", response.content_type
+    json = JSON.parse(response.body)
+    assert json["errors"].present?
+  end
+
   test "create does not write to DB when params are invalid" do
     assert_no_difference -> { Credential.count } do
       post "/api/credentials",

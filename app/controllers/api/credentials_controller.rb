@@ -29,6 +29,8 @@ module Api
       else
         render json: { errors: credential.errors.full_messages }, status: :unprocessable_entity
       end
+    rescue Mongo::Error::OperationFailure => e
+      render json: { errors: [e.message] }, status: :unprocessable_entity
     end
 
     private
