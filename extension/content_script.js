@@ -69,7 +69,6 @@
 
   function maybeShowBanner(cred) {
     if (!cred) return;
-    if (window.location.href === cred.url) { clearPending(); return; }
     clearPending();
     showSaveBanner(cred, () => {
       chrome.runtime.sendMessage({ type: 'SAVE_CREDENTIAL', payload: cred });
