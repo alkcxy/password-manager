@@ -31,11 +31,51 @@ Plain JavaScript + ES modules — no Node.js build pipeline. Consistent with the
 
 ### Distribution
 
-Published on the Chrome Web Store ($5 one-time developer fee). This gives the extension a stable, permanent ID — which means the CORS whitelist in Rails never needs to change after the initial setup.
+Published on the Chrome Web Store ($5 one-time developer fee).
 
 For development, load as unpacked extension:
 - Vivaldi: `vivaldi://extensions`
 - Chrome: `chrome://extensions`
+
+### Stable extension ID (development + production)
+
+The extension ID is derived deterministically from a keypair baked into `manifest.json`. This means the ID is stable across reloads and reinstalls — no need to update the CORS config each time, and no dependency on Chrome Web Store publication for a fixed ID.
+
+Generate the keypair once:
+
+```bash
+openssl genrsa 2048 | openssl pkcs8 -topk8 -nocrypt -out extension/key.pem
+openssl rsa -in extension/key.pem -pubout -outform DER | base64 -w0
+```
+
+Add the Base64 output to `manifest.json`:
+
+```json
+"key": "<base64-encoded-public-key>"
+```
+
+The resulting ID (visible in `chrome://extensions` after loading unpacked) is set once in the Rails environment as `EXTENSION_ID` and never changes. The private key (`key.pem`) must be kept secret and excluded from version control.
+
+**HTTP in development (localhost only)**: Chrome treats `localhost` as a secure context — the extension can call `http://localhost:3000` without HTTPS. No special setup needed when the browser and the Rails server are on the same machine.
+
+**HTTP in development (LAN, server on a different machine)**: `http://192.168.x.x` is not a secure context — Chrome blocks requests from the extension to a plain HTTP LAN address. Use `mkcert` to issue a locally-trusted certificate for the LAN IP:
+
+```bash
+# install mkcert and its root CA (once per machine)
+mkcert -install
+
+# issue a cert for the LAN IP (replace with your actual IP)
+mkcert 192.168.1.100
+# produces: 192.168.1.100.pem  192.168.1.100-key.pem
+```
+
+Then start Puma with TLS:
+
+```bash
+bin/rails server -b "ssl://0.0.0.0:3000?key=192.168.1.100-key.pem&cert=192.168.1.100.pem"
+```
+
+The extension Options page should be set to `https://192.168.1.100:3000`. The mkcert root CA must be installed on every machine whose browser will connect (run `mkcert -install` there too).
 
 ### Configurable base URL
 
@@ -56,9 +96,10 @@ A new `ApiToken` Mongoid model will store tokens: `token` (opaque, SecureRandom 
 | `/api/sessions` | POST | `{ email, password }` | `{ token, expires_at }` |
 | `/api/sessions/:token` | DELETE | — | `204 No Content` |
 | `/api/credentials` | GET | `?domain=<host>` | `[{ id, name, username, url }]` |
+| `/api/credentials/:id` | GET | — | `{ id, name, username, url, password, note }` |
 | `/api/credentials` | POST | `{ name, username, password, url, note }` | `{ id, name }` |
 
-**Password is never returned by `GET /api/credentials`** — only metadata (name, username, url). This keeps credential exposure minimal.
+**`GET /api/credentials` (list) never returns the password** — only metadata. The password is exposed only via `GET /api/credentials/:id` (single credential), used by the extension popup to autofill the password field.
 
 All responses are JSON. All endpoints require `Authorization: Bearer <token>` except `POST /api/sessions`.
 
@@ -67,7 +108,7 @@ All responses are JSON. All endpoints require `Authorization: Bearer <token>` ex
 - New namespace: `app/controllers/api/`
 - `Api::BaseController`: reads and validates Bearer token, sets `current_user`
 - `Api::SessionsController`: create/destroy
-- `Api::CredentialsController`: index (filtered by domain via `url` field), create
+- `Api::CredentialsController`: index (filtered by domain via `url` field), show (returns password for autofill), create
 - CORS: add `rack-cors` gem, whitelist `chrome-extension://<extension-id>`
 - No changes to existing web controllers
 
@@ -101,7 +142,7 @@ Token expiry
 ## Security considerations
 
 - **HTTPS assumed.** The app is deployed on a public domain under HTTPS — no self-signed cert setup needed.
-- **CORS:** whitelist only `chrome-extension://<extension-id>`. With Chrome Web Store publication the ID is permanent, so this is a one-time configuration.
+- **CORS:** whitelist only `chrome-extension://<extension-id>`. The ID is stable because it is derived from the keypair in `manifest.json` — set `EXTENSION_ID` env var once, never touch it again.
 - **Rate-limit** `POST /api/sessions` to prevent brute-force (e.g. `rack-attack`, 5 req/min per IP).
 - **Token rotation:** not implemented in v1; acceptable for personal use.
 - **No auto-submit:** the content script fills fields only — the user always clicks Submit themselves.
@@ -113,9 +154,8 @@ Token expiry
 | Limitation | Notes |
 |---|---|
 | No offline support | Extension needs the Rails app reachable on the network |
-| Extension ID changes on unpacked reload | CORS config must be updated each time; fixed once published on Chrome Web Store |
 | No Firefox support | MV3 divergence makes cross-browser support non-trivial; out of scope |
-| No password retrieval via extension | `GET /api/credentials` returns metadata only; a separate reveal endpoint can be added later |
+| No password retrieval via extension | `GET /api/credentials` returns metadata only; use `GET /api/credentials/:id` to retrieve the password for autofill |
 | Cross-origin iframes | Login forms embedded from a different domain (Auth0, Okta, Stripe) are inaccessible to the content script — hard browser limit |
 | Shadow DOM | Form fields inside Shadow DOM components may not be reachable via standard `querySelector` |
 | Non-standard SPA event handling | Some React/Vue apps require specific synthetic events to detect programmatically injected values; requires per-site testing |
