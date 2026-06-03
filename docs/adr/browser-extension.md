@@ -171,14 +171,26 @@ Le seguenti issue vanno lavorate in ordine — ogni step è prerequisito del suc
 |---|---|---|---|
 | A | ~~HTTPS/TLS setup~~ _(non necessario: dominio pubblico con HTTPS)_ | [#61](https://github.com/alkcxy/password-manager/issues/61) | — |
 | B | ~~Rails API layer: `ApiToken` model + `Api::BaseController` + token auth~~ | [#62](https://github.com/alkcxy/password-manager/issues/62) | — |
-| C | Rails API: `Api::SessionsController` (login/logout) + `rack-attack` | [#63](https://github.com/alkcxy/password-manager/issues/63) | B |
-| D | Rails API: `Api::CredentialsController` (index per domain, create) + `rack-cors` | [#64](https://github.com/alkcxy/password-manager/issues/64) | B |
-| E | Browser extension: content script (capture + save prompt) | [#65](https://github.com/alkcxy/password-manager/issues/65) | C, D |
-| F | Browser extension: background service worker (token management, API calls, URL configurabile) | [#66](https://github.com/alkcxy/password-manager/issues/66) | C, D |
+| C | ~~Rails API: `Api::SessionsController` (login/logout) + `rack-attack`~~ | [#63](https://github.com/alkcxy/password-manager/issues/63) | B |
+| D | ~~Rails API: `Api::CredentialsController` (index per domain, create) + `rack-cors`~~ | [#64](https://github.com/alkcxy/password-manager/issues/64) | B |
+| E | ~~Browser extension: content script (capture + save prompt)~~ | [#65](https://github.com/alkcxy/password-manager/issues/65) | C, D |
+| F | Browser extension: background service worker (token management, API calls, URL configurabile) | [#66](https://github.com/alkcxy/password-manager/issues/66) | C, D, G |
 | G | Browser extension: options page (URL base configurabile, salvataggio in `chrome.storage.sync`) | [#68](https://github.com/alkcxy/password-manager/issues/68) | — |
 | H | Browser extension: popup (credential list, fill trigger, login/logout) | [#67](https://github.com/alkcxy/password-manager/issues/67) | E, F, G |
 | I | Web app: banner/suggerimento installazione extension | [#69](https://github.com/alkcxy/password-manager/issues/69) | — |
-| J | `.dockerignore`: escludere `extension/` e `docs/` dall'immagine Docker | — | — |
+| J | ~~`.dockerignore`: escludere `extension/` e `docs/` dall'immagine Docker~~ | — | — |
+
+---
+
+## Implementation notes (storia E)
+
+Scoperte durante l'implementazione del content script:
+
+- **`chrome.storage.session` non disponibile nei content script** (almeno su Vivaldi): si usa `chrome.storage.local` con cleanup immediato dopo l'uso.
+- **`MutationObserver` su `document.documentElement`**, non su `document.body`: Turbo Drive sostituisce `document.body` ad ogni navigazione, rendendo inutile un observer attaccato al vecchio body.
+- **SPA senza `<form>`** (es. Authelia/MUI): il submit avviene via `fetch` senza evento `submit`. Il content script trova il bottone di submit per posizione nel DOM (`compareDocumentPosition`) invece che per `type="submit"`.
+- **Login in due fasi** (es. Microsoft, Google): username e password sono su pagine separate. Il content script salva il username in `pendingUsername` (memoria + `chrome.storage.local`) durante la fase 1 e lo consuma durante la fase 2.
+- **Rilevamento successo login rimosso**: l'estensione non può sapere se il login è andato a buon fine senza conoscere la logica del sito. Il banner compare sempre dopo ogni navigazione post-submit; l'utente decide se salvare.
 
 ---
 
