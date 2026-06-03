@@ -34,6 +34,6 @@ saveBtn.addEventListener("click", () => {
 
   chrome.storage.sync.set({ baseUrl: value }, () => {
     status.textContent = "Salvato.";
-    setTimeout(() => { status.textContent = ""; }, 3000);
+    setTimeout(() => window.close(), 800);
   });
 });
