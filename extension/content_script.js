@@ -98,11 +98,20 @@
     });
   }
 
-  document.addEventListener('turbo:load', () => {
+  function onNavigated() {
     showPendingBannerIfSucceeded();
     scanForms();
-  });
+  }
 
+  // Turbo Drive (Rails)
+  document.addEventListener('turbo:load', onNavigated);
+
+  // SPA: React Router, Vue Router, Next.js, ecc.
+  const origPushState = history.pushState.bind(history);
+  history.pushState = function (...args) { origPushState(...args); onNavigated(); };
+  window.addEventListener('popstate', onNavigated);
+
+  // Iniezione dinamica di campi (SPA che non usano History API)
   new MutationObserver(scanForms).observe(document.documentElement, { childList: true, subtree: true });
   scanForms();
 }());
