@@ -6,8 +6,10 @@ function validateUrl(value) {
   } catch {
     return "URL non valida.";
   }
-  if (!parsed.hostname) return "URL non valida.";
   if (parsed.protocol !== "https:") return "L'URL deve usare HTTPS.";
+  // Catches "https:/foo" where Chrome parses hostname correctly but structure is wrong
+  if (!value.startsWith("https://")) return "URL non valida.";
+  if (!parsed.hostname) return "URL non valida.";
   return null;
 }
 
