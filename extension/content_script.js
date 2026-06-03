@@ -28,13 +28,19 @@
     return document.body;
   }
 
-  // Risale il DOM cercando il bottone di submit più vicino
+  // Trova il primo bottone che appare DOPO il campo password nel DOM,
+  // escludendo quelli dentro il wrapper dell'input (es. toggle visibilità).
   function findSubmitButton(passwordField) {
-    let el = passwordField.parentElement;
-    for (let i = 0; i < 8 && el && el !== document.body; i++) {
-      const btn = el.querySelector('button[type="submit"], button:not([type="button"]), input[type="submit"]');
-      if (btn) return btn;
-      el = el.parentElement;
+    const inputWrapper = passwordField.parentElement;
+    let container = inputWrapper.parentElement;
+    for (let i = 0; i < 8 && container && container !== document.body; i++) {
+      const candidates = Array.from(container.querySelectorAll('button, input[type="submit"]'))
+        .filter(b =>
+          !inputWrapper.contains(b) &&
+          (inputWrapper.compareDocumentPosition(b) & Node.DOCUMENT_POSITION_FOLLOWING)
+        );
+      if (candidates.length) return candidates[0];
+      container = container.parentElement;
     }
     return null;
   }
