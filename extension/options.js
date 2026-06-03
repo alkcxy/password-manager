@@ -1,10 +1,16 @@
-const VALID_URL = /^https:\/\/(localhost|\d{1,3}(\.\d{1,3}){3}|[a-zA-Z0-9][a-zA-Z0-9-]*(\.[a-zA-Z0-9][a-zA-Z0-9-]*)+)(:\d{1,5})?(\/[^\s]*)?$/;
+const TIMEOUT_MS = 5000;
 
-function validateUrl(value) {
-  if (!value) return "Inserisci un URL.";
-  if (VALID_URL.test(value)) return null;
-  if (/^http:\/\//i.test(value)) return "L'URL deve usare HTTPS.";
-  return "URL non valida.";
+async function reachable(url) {
+  const controller = new AbortController();
+  const id = setTimeout(() => controller.abort(), TIMEOUT_MS);
+  try {
+    const res = await fetch(url, { signal: controller.signal });
+    return res.ok ? null : `Il sito ha risposto con errore (${res.status}).`;
+  } catch {
+    return "Impossibile raggiungere il sito.";
+  } finally {
+    clearTimeout(id);
+  }
 }
 
 const input = document.getElementById("base-url");
@@ -16,13 +22,33 @@ chrome.storage.sync.get("baseUrl", ({ baseUrl }) => {
   if (baseUrl) input.value = baseUrl;
 });
 
-saveBtn.addEventListener("click", () => {
+saveBtn.addEventListener("click", async () => {
   const value = input.value.trim();
-  const error = validateUrl(value);
 
+  errorMsg.textContent = "";
+  input.classList.remove("error");
+  status.textContent = "";
+
+  if (!value) {
+    errorMsg.textContent = "Inserisci un URL.";
+    input.classList.add("error");
+    return;
+  }
+  if (!value.startsWith("https://")) {
+    errorMsg.textContent = "L'URL deve usare HTTPS.";
+    input.classList.add("error");
+    return;
+  }
+
+  saveBtn.disabled = true;
+  status.textContent = "Verifica in corso…";
+
+  const error = await reachable(value);
+
+  saveBtn.disabled = false;
+  status.textContent = "";
   errorMsg.textContent = error ?? "";
   input.classList.toggle("error", error !== null);
-  status.textContent = "";
 
   if (error) return;
 
