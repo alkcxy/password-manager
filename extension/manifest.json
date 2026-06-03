@@ -1,0 +1,19 @@
+{
+  "manifest_version": 3,
+  "name": "Password Manager",
+  "version": "1.0.0",
+  "description": "Save and autofill credentials from your self-hosted password manager.",
+  "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAvlF4eW0Da4gp/NbbPjCvJCpO9s9T75TI3XbOLNonBioT71/MbiKKTxVSmctMZG91ZTkzVPWlOIYqjjcxmzkDJwnC45UiB99X1swxWEXkaOHm8RZSmaoZLSqa4897/gMY0NnAwnmCszrgUzECB7xbf70Ebylp6TA2fIf7g/9q+AQ2VdqYcrILNfjPHNjDA/1Z1VieV8ljzMejMsItZDSI0vZY1Cej1EE33IinpVDdH4Gb3VbRNMPTG0rQTJqQNd3Px8CLG5xGF5RvPeC5VmoXILCRCei6PGcAGpxzLzWCAGHKhvU6vnkxZNNQiOv8oAsHZpnbC/9bj0Fne9KNR0Q9TwIDAQAB",
+  "permissions": ["storage"],
+  "host_permissions": ["<all_urls>"],
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["content_script.js"],
+      "run_at": "document_idle"
+    }
+  ],
+  "background": {
+    "service_worker": "background.js"
+  }
+}
