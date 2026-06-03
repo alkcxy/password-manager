@@ -159,6 +159,7 @@ Token expiry
 | Cross-origin iframes | Login forms embedded from a different domain (Auth0, Okta, Stripe) are inaccessible to the content script — hard browser limit |
 | Shadow DOM | Form fields inside Shadow DOM components may not be reachable via standard `querySelector` |
 | Non-standard SPA event handling | Some React/Vue apps require specific synthetic events to detect programmatically injected values; requires per-site testing |
+| Username detection imprecisa | Su alcuni siti (es. Microsoft login) l'euristica DOM può catturare un campo sbagliato come username. I campi `name`, `username` e `url` sono tutti modificabili dall'utente al momento del salvataggio (storia H — popup). |
 
 ---
 
