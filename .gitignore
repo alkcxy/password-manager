@@ -62,6 +62,7 @@ bin/test-local
 bin/dev-local
 mise.toml
 zscaler_ca.pem
+extension/key.pem
 log/
 /public/assets
 /public/packs
