@@ -3,6 +3,7 @@
 
   const BANNER_ID = 'pm-save-banner';
   const attachedForms = new WeakSet();
+  let pendingCredential = null;
 
   function findUsernameField(form, passwordField) {
     const inputs = Array.from(form.querySelectorAll('input'));
@@ -29,7 +30,7 @@
     return btn;
   }
 
-  function showSaveBanner(username, password, url, onSave, onIgnore) {
+  function showSaveBanner(credential, onSave, onIgnore) {
     removeBanner();
 
     const banner = document.createElement('div');
@@ -43,12 +44,12 @@
 
     const text = document.createElement('span');
     text.style.flex = '1';
-    text.textContent = `Salva "${username || '(utente)'}" nel password manager?`;
+    text.textContent = `Salva "${credential.username || '(utente)'}" nel password manager?`;
 
     const btnSave = makeButton('Salva', '#3b82f6', '#fff');
     const btnIgnore = makeButton('Ignora', 'transparent', '#94a3b8');
 
-    btnSave.addEventListener('click', () => { removeBanner(); onSave(username, password, url); });
+    btnSave.addEventListener('click', () => { removeBanner(); onSave(); });
     btnIgnore.addEventListener('click', () => { removeBanner(); onIgnore(); });
 
     banner.append(text, btnSave, btnIgnore);
@@ -59,35 +60,35 @@
     if (attachedForms.has(form)) return;
     attachedForms.add(form);
 
-    let skipNext = false;
-
-    form.addEventListener('submit', (e) => {
-      if (skipNext) { skipNext = false; return; }
-
+    form.addEventListener('submit', () => {
       const passwordField = form.querySelector('input[type="password"]');
       if (!passwordField || !passwordField.value) return;
 
-      e.preventDefault();
-
-      const password = passwordField.value;
       const usernameField = findUsernameField(form, passwordField);
-      const username = usernameField ? usernameField.value : '';
-      const url = window.location.href;
+      let name = window.location.href;
+      try { name = new URL(window.location.href).hostname; } catch (_) {}
 
-      showSaveBanner(username, password, url,
-        (u, p, href) => {
-          let hostname = href;
-          try { hostname = new URL(href).hostname; } catch (_) {}
-          chrome.runtime.sendMessage({
-            type: 'SAVE_CREDENTIAL',
-            payload: { name: hostname, username: u, password: p, url: href }
-          });
-          skipNext = true;
-          form.requestSubmit();
-        },
-        () => { skipNext = true; form.requestSubmit(); }
-      );
+      pendingCredential = {
+        name,
+        username: usernameField ? usernameField.value : '',
+        password: passwordField.value,
+        url: window.location.href,
+      };
     }, true);
+  }
+
+  function showPendingBannerIfSucceeded() {
+    if (!pendingCredential) return;
+    // Login fallita: siamo ancora sulla stessa pagina
+    if (window.location.href === pendingCredential.url) {
+      pendingCredential = null;
+      return;
+    }
+    const cred = pendingCredential;
+    pendingCredential = null;
+    showSaveBanner(cred, () => {
+      chrome.runtime.sendMessage({ type: 'SAVE_CREDENTIAL', payload: cred });
+    }, () => {});
   }
 
   function scanForms() {
@@ -97,9 +98,11 @@
     });
   }
 
-  // Osserva documentElement invece di body: Turbo Drive sostituisce document.body
-  // ad ogni navigazione, rendendo inutile un observer attaccato al vecchio body.
+  document.addEventListener('turbo:load', () => {
+    showPendingBannerIfSucceeded();
+    scanForms();
+  });
+
   new MutationObserver(scanForms).observe(document.documentElement, { childList: true, subtree: true });
-  document.addEventListener('turbo:load', scanForms);
   scanForms();
 }());
