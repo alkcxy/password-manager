@@ -1,14 +1,7 @@
-function validateUrl(value) {
+function validateUrl(input, value) {
   if (!value) return "Inserisci un URL.";
-  let parsed;
-  try {
-    parsed = new URL(value);
-  } catch {
-    return "URL non valida.";
-  }
-  if (parsed.protocol !== "https:") return "L'URL deve usare HTTPS.";
-  if (!value.startsWith("https://")) return "URL non valida.";
-  if (!parsed.hostname || parsed.hostname.startsWith(".") || parsed.hostname.includes("..")) return "URL non valida.";
+  if (!input.validity.valid) return "URL non valida.";
+  if (!value.startsWith("https://")) return "L'URL deve usare HTTPS.";
   return null;
 }
 
@@ -23,7 +16,8 @@ chrome.storage.sync.get("baseUrl", ({ baseUrl }) => {
 
 saveBtn.addEventListener("click", () => {
   const value = input.value.trim();
-  const error = validateUrl(value);
+  input.value = value;
+  const error = validateUrl(input, value);
 
   errorMsg.textContent = error ?? "";
   input.classList.toggle("error", error !== null);
