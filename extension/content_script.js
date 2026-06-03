@@ -2,6 +2,7 @@
   'use strict';
 
   const BANNER_ID = 'pm-save-banner';
+  const STORAGE_KEY = 'pmPendingCred';
   const attachedForms = new WeakSet();
   let pendingCredential = null;
 
@@ -56,6 +57,37 @@
     document.body.appendChild(banner);
   }
 
+  function storePending(cred) {
+    pendingCredential = cred;
+    chrome.storage.session.set({ [STORAGE_KEY]: cred });
+  }
+
+  function clearPending() {
+    pendingCredential = null;
+    chrome.storage.session.remove(STORAGE_KEY);
+  }
+
+  function maybeShowBanner(cred) {
+    if (!cred) return;
+    if (window.location.href === cred.url) { clearPending(); return; }
+    clearPending();
+    showSaveBanner(cred, () => {
+      chrome.runtime.sendMessage({ type: 'SAVE_CREDENTIAL', payload: cred });
+    }, () => {});
+  }
+
+  function showPendingBannerIfSucceeded() {
+    if (pendingCredential) {
+      // Stesso contesto JS (SPA/Turbo): credenziale ancora in memoria
+      maybeShowBanner(pendingCredential);
+    } else {
+      // Contesto ricaricato (form tradizionale con redirect): leggi da storage
+      chrome.storage.session.get(STORAGE_KEY, (result) => {
+        maybeShowBanner(result[STORAGE_KEY] || null);
+      });
+    }
+  }
+
   function attachToForm(form) {
     if (attachedForms.has(form)) return;
     attachedForms.add(form);
@@ -68,27 +100,18 @@
       let name = window.location.href;
       try { name = new URL(window.location.href).hostname; } catch (_) {}
 
-      pendingCredential = {
+      storePending({
         name,
         username: usernameField ? usernameField.value : '',
         password: passwordField.value,
         url: window.location.href,
-      };
+      });
     }, true);
   }
 
-  function showPendingBannerIfSucceeded() {
-    if (!pendingCredential) return;
-    // Login fallita: siamo ancora sulla stessa pagina
-    if (window.location.href === pendingCredential.url) {
-      pendingCredential = null;
-      return;
-    }
-    const cred = pendingCredential;
-    pendingCredential = null;
-    showSaveBanner(cred, () => {
-      chrome.runtime.sendMessage({ type: 'SAVE_CREDENTIAL', payload: cred });
-    }, () => {});
+  function onNavigated() {
+    showPendingBannerIfSucceeded();
+    scanForms();
   }
 
   function scanForms() {
@@ -96,11 +119,6 @@
       const form = field.closest('form');
       if (form) attachToForm(form);
     });
-  }
-
-  function onNavigated() {
-    showPendingBannerIfSucceeded();
-    scanForms();
   }
 
   // Turbo Drive (Rails)
@@ -111,7 +129,10 @@
   history.pushState = function (...args) { origPushState(...args); onNavigated(); };
   window.addEventListener('popstate', onNavigated);
 
-  // Iniezione dinamica di campi (SPA che non usano History API)
+  // Iniezione dinamica di campi password
   new MutationObserver(scanForms).observe(document.documentElement, { childList: true, subtree: true });
+
+  // Caricamento iniziale: controlla se c'è una credenziale pendente da un redirect
+  showPendingBannerIfSucceeded();
   scanForms();
 }());
