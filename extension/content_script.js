@@ -60,10 +60,12 @@
   function attachToForm(form) {
     if (attachedForms.has(form)) return;
     attachedForms.add(form);
+    console.log('[PM] form agganciato:', form.action);
 
     let skipNext = false;
 
     form.addEventListener('submit', (e) => {
+      console.log('[PM] submit intercettato, skipNext:', skipNext);
       if (skipNext) { skipNext = false; return; }
 
       const passwordField = form.querySelector('input[type="password"]');
@@ -93,9 +95,12 @@
   }
 
   function scanForms() {
-    document.querySelectorAll('input[type="password"]').forEach(field => {
+    const fields = document.querySelectorAll('input[type="password"]');
+    console.log('[PM] scanForms:', fields.length, 'campi password trovati');
+    fields.forEach(field => {
       const form = field.closest('form');
       if (form) attachToForm(form);
+      else console.log('[PM] campo password senza <form> wrapper');
     });
   }
 
