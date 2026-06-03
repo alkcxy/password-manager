@@ -3,9 +3,26 @@
 
   const BANNER_ID = 'pm-save-banner';
   const STORAGE_KEY = 'pmPendingCred';
+  const USERNAME_KEY = 'pmPendingUsername';
   const attachedForms = new WeakSet();
   const attachedFields = new WeakSet();
   let pendingCredential = null;
+  let pendingUsername = null;
+
+  // Recupera username pendente da un eventuale redirect precedente
+  chrome.storage.local.get(USERNAME_KEY, (result) => {
+    if (!chrome.runtime.lastError && result && result[USERNAME_KEY]) {
+      pendingUsername = result[USERNAME_KEY];
+    }
+  });
+
+  function isUsernameInput(input) {
+    if (!['text', 'email', 'tel'].includes(input.type)) return false;
+    return (
+      /username|email/i.test(input.autocomplete || '') ||
+      /user|email|login|name/i.test([input.name, input.id, input.placeholder].join(' '))
+    );
+  }
 
   function findUsernameField(container, passwordField) {
     const inputs = Array.from(container.querySelectorAll('input'));
@@ -18,9 +35,8 @@
     return candidates[candidates.length - 1] || null;
   }
 
-  // Risale il DOM cercando il container che contiene anche un campo username
-  function findContainer(passwordField) {
-    let el = passwordField.parentElement;
+  function findContainer(field) {
+    let el = field.parentElement;
     while (el && el !== document.body) {
       if (el.querySelector('input[type="text"], input[type="email"], input[type="tel"]')) return el;
       el = el.parentElement;
@@ -28,10 +44,8 @@
     return document.body;
   }
 
-  // Trova il primo bottone che appare DOPO il campo password nel DOM,
-  // escludendo quelli dentro il wrapper dell'input (es. toggle visibilità).
-  function findSubmitButton(passwordField) {
-    const inputWrapper = passwordField.parentElement;
+  function findSubmitButton(field) {
+    const inputWrapper = field.parentElement;
     let container = inputWrapper.parentElement;
     for (let i = 0; i < 8 && container && container !== document.body; i++) {
       const candidates = Array.from(container.querySelectorAll('button, input[type="submit"]'))
@@ -85,8 +99,19 @@
     document.body.appendChild(banner);
   }
 
+  function storePendingUsername(username) {
+    pendingUsername = username;
+    chrome.storage.local.set({ [USERNAME_KEY]: username });
+  }
+
+  function clearPendingUsername() {
+    pendingUsername = null;
+    chrome.storage.local.remove(USERNAME_KEY);
+  }
+
   function storePending(cred) {
     pendingCredential = cred;
+    clearPendingUsername();
     chrome.storage.local.set({ [STORAGE_KEY]: cred });
   }
 
@@ -117,42 +142,48 @@
   function captureCredential(passwordField, container) {
     if (!passwordField.value) return;
     const usernameField = findUsernameField(container, passwordField);
+    // Usa username trovato nella pagina; se assente, usa quello salvato dalla fase 1
+    const username = usernameField ? usernameField.value : (pendingUsername || '');
     let name = window.location.href;
     try { name = new URL(window.location.href).hostname; } catch (_) {}
-    storePending({
-      name,
-      username: usernameField ? usernameField.value : '',
-      password: passwordField.value,
-      url: window.location.href,
-    });
+    storePending({ name, username, password: passwordField.value, url: window.location.href });
   }
 
-  // Caso 1: campo password dentro un <form>
+  function captureUsernameOnly(container) {
+    const field = Array.from(container.querySelectorAll('input')).find(isUsernameInput);
+    if (field && field.value) storePendingUsername(field.value);
+  }
+
+  // Caso 1: <form> — gestisce sia login completo che fase 1 (solo username)
   function attachToForm(form) {
     if (attachedForms.has(form)) return;
     attachedForms.add(form);
     form.addEventListener('submit', () => {
       const passwordField = form.querySelector('input[type="password"]');
       if (passwordField) captureCredential(passwordField, form);
+      else captureUsernameOnly(form);
     }, true);
   }
 
-  // Caso 2: campo password senza <form> (SPA tipo Authelia, React, ecc.)
+  // Caso 2: campo password senza <form> (Authelia, React, ecc.)
   function attachToField(passwordField) {
     if (attachedFields.has(passwordField)) return;
     attachedFields.add(passwordField);
-
     const container = findContainer(passwordField);
     const capture = () => captureCredential(passwordField, container);
-
-    // Click sul bottone di submit
     const submitBtn = findSubmitButton(passwordField);
     if (submitBtn) submitBtn.addEventListener('click', capture);
+    container.addEventListener('keydown', (e) => { if (e.key === 'Enter') capture(); });
+  }
 
-    // Invio con Enter sul campo password o username
-    container.addEventListener('keydown', (e) => {
-      if (e.key === 'Enter') capture();
-    });
+  // Caso 3: campo username senza password nella pagina (fase 1 two-phase auth, no <form>)
+  function attachToUsernameOnlyField(usernameField) {
+    if (attachedFields.has(usernameField)) return;
+    attachedFields.add(usernameField);
+    const capture = () => { if (usernameField.value) storePendingUsername(usernameField.value); };
+    const submitBtn = findSubmitButton(usernameField);
+    if (submitBtn) submitBtn.addEventListener('click', capture);
+    usernameField.addEventListener('keydown', (e) => { if (e.key === 'Enter') capture(); });
   }
 
   function onNavigated() {
@@ -161,11 +192,23 @@
   }
 
   function scanForms() {
-    document.querySelectorAll('input[type="password"]').forEach(field => {
+    const passwordFields = document.querySelectorAll('input[type="password"]');
+
+    passwordFields.forEach(field => {
       const form = field.closest('form');
       if (form) attachToForm(form);
       else attachToField(field);
     });
+
+    // Se non ci sono campi password: cerca username per fase 1
+    if (passwordFields.length === 0) {
+      document.querySelectorAll('form').forEach(form => attachToForm(form));
+      document.querySelectorAll('input').forEach(input => {
+        if (isUsernameInput(input) && !input.closest('form')) {
+          attachToUsernameOnlyField(input);
+        }
+      });
+    }
   }
 
   // Turbo Drive (Rails)
@@ -176,10 +219,9 @@
   history.pushState = function (...args) { origPushState(...args); onNavigated(); };
   window.addEventListener('popstate', onNavigated);
 
-  // Iniezione dinamica di campi password
+  // Iniezione dinamica di campi
   new MutationObserver(scanForms).observe(document.documentElement, { childList: true, subtree: true });
 
-  // Caricamento iniziale: controlla se c'è una credenziale pendente da un redirect
   showPendingBannerIfSucceeded();
   scanForms();
 }());
