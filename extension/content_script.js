@@ -1,6 +1,12 @@
 (function () {
   'use strict';
 
+  // Segnala alla web app che l'estensione è attiva su questa pagina.
+  // localStorage persiste per le navigazioni successive; l'evento rimuove
+  // immediatamente il banner se Stimulus si è connesso prima di questo script.
+  try { localStorage.setItem('pm_ext_installed', '1'); } catch (_) {}
+  window.dispatchEvent(new CustomEvent('pm-ext-installed'));
+
   const BANNER_ID = 'pm-save-banner';
   const STORAGE_KEY = 'pmPendingCred';
   const USERNAME_KEY = 'pmPendingUsername';
