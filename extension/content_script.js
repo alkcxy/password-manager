@@ -1,6 +1,8 @@
 (function () {
   'use strict';
 
+  console.log('[pm-ext] content_script.js loaded on', window.location.href);
+
   // Segnala alla web app che l'estensione è attiva su questa pagina.
   // localStorage persiste per le navigazioni successive; l'evento rimuove
   // immediatamente il banner se Stimulus si è connesso prima di questo script.
@@ -258,12 +260,21 @@
   // Iniezione dinamica di campi
   new MutationObserver(scanForms).observe(document.documentElement, { childList: true, subtree: true });
 
-  // Rimuove il banner di installazione estensione dalla web app
+  // Rimuove il banner di installazione estensione dalla web app.
+  // MutationObserver dedicato: cattura il banner anche se viene aggiunto dopo
+  // l'esecuzione del content script (Turbo morph, render dinamico, ecc.).
   function removeInstallBanner() {
-    document.querySelectorAll('[data-controller="extension-banner"]').forEach(el => el.remove());
+    const banners = document.querySelectorAll('[data-controller="extension-banner"]');
+    if (banners.length) {
+      console.log('[pm-ext] removing', banners.length, 'install banner(s)');
+      banners.forEach(el => el.remove());
+    }
   }
   removeInstallBanner();
   document.addEventListener('turbo:load', removeInstallBanner);
+  new MutationObserver(removeInstallBanner).observe(document.documentElement, {
+    childList: true, subtree: true
+  });
 
   showPendingBannerIfSucceeded();
   scanForms();
