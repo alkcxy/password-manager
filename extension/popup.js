@@ -21,7 +21,7 @@ async function init() {
   const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
   if (tab) {
     activeTabId = tab.id;
-    try { activeDomain = new URL(tab.url).hostname.replace(/^www\./, ''); } catch (_) {}
+    try { activeDomain = new URL(tab.url).hostname; } catch (_) {}
   }
 
   const { baseUrl } = await chrome.storage.sync.get('baseUrl');
