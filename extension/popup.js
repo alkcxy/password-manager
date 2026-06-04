@@ -83,6 +83,7 @@ async function showCredentials() {
   }
 
   if (response.status !== 'ok' || response.data.length === 0) {
+    emptyMsg.textContent = `Nessuna credenziale per ${activeDomain || 'questo sito'}.`;
     emptyMsg.hidden = false;
     return;
   }
