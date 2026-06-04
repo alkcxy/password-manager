@@ -173,18 +173,17 @@ Le seguenti issue vanno lavorate in ordine — ogni step è prerequisito del suc
 | B | ~~Rails API layer: `ApiToken` model + `Api::BaseController` + token auth~~ | [#62](https://github.com/alkcxy/password-manager/issues/62) | — | ✅ |
 | C | ~~Rails API: `Api::SessionsController` (login/logout) + `rack-attack`~~ | [#63](https://github.com/alkcxy/password-manager/issues/63) | B | ✅ |
 | D | ~~Rails API: `Api::CredentialsController` (index per domain, create) + `rack-cors`~~ | [#64](https://github.com/alkcxy/password-manager/issues/64) | B | ✅ |
-| E | ~~Browser extension: content script (capture + save prompt)~~ ¹ | [#65](https://github.com/alkcxy/password-manager/issues/65) | C, D | ✅ (patch pendente dopo H) |
+| E | ~~Browser extension: content script (capture + save prompt)~~ ¹ | [#65](https://github.com/alkcxy/password-manager/issues/65) | C, D | ✅ (patch pendente dopo F+H) |
 | G | ~~Browser extension: options page (URL base configurabile, salvataggio in `chrome.storage.sync`)~~ | [#68](https://github.com/alkcxy/password-manager/issues/68) | — | ✅ |
-| F | Browser extension: background service worker (token management, API calls, URL configurabile) | [#66](https://github.com/alkcxy/password-manager/issues/66) | C, D, G | 🔶 implementazione done, test bloccato da H ² |
-| H | Browser extension: popup (credential list, fill trigger, login/logout) | [#67](https://github.com/alkcxy/password-manager/issues/67) | E, F, G | ⬜ da fare |
+| F+H | Browser extension: background service worker + popup (login/logout, credential list, fill) | [#66](https://github.com/alkcxy/password-manager/issues/66) [#67](https://github.com/alkcxy/password-manager/issues/67) | C, D, E, G | 🔶 PR #76 aperta — da testare |
 | I | Web app: banner/suggerimento installazione extension | [#69](https://github.com/alkcxy/password-manager/issues/69) | — | ⬜ da fare |
 | J | ~~`.dockerignore`: escludere `extension/` e `docs/` dall'immagine Docker~~ | — | — | ✅ |
 
 **Note:**
 
-¹ **E — patch pendente:** il content script invia `SAVE_CREDENTIAL` senza gestire la risposta del background. Se l'utente non è autenticato (`TOKEN_EXPIRED`) o la `baseUrl` non è configurata (`NOT_CONFIGURED`), il salvataggio fallisce silenziosamente. Dopo che H è completato, E va aggiornato per mostrare un feedback all'utente in caso di risposta di errore dal background.
+¹ **E — patch pendente:** il content script invia `SAVE_CREDENTIAL` senza gestire la risposta del background. Se l'utente non è autenticato o la `baseUrl` non è configurata, il salvataggio fallisce silenziosamente. Dopo il merge di F+H, E va aggiornato per mostrare un feedback all'utente in caso di `TOKEN_EXPIRED` o `NOT_CONFIGURED`.
 
-² **F — test bloccato da H:** l'implementazione del background service worker è completa (PR #75), ma il test end-to-end richiede il popup (H) perché è il popup che fornisce la UI per il LOGIN. Senza il popup, il login può essere eseguito solo manualmente dal DevTools del service worker. F va testato insieme a H e chiuso dopo che il test manuale T01–T12 (vedi `extension/TEST_PLAN.md`) è stato eseguito con il popup funzionante.
+**Taglio sbagliato — lezione appresa:** F (background SW) e H (popup) erano state definite come storie separate con F prerequisito di H. In pratica il background senza popup non porta nessun valore osservabile: nessuna UI per il login, `SAVE_CREDENTIAL` dal content script fallisce silenziosamente, niente da testare end-to-end. Il taglio corretto era una storia unica "extension lato client" oppure due storie con ordine inverso (popup prima, che guida il design del background). Le due issue sono state collassate in un'unica PR (#76).
 
 ---
 
