@@ -1,5 +1,6 @@
 'use strict';
 
+const notConfiguredView = document.getElementById('not-configured-view');
 const loginView = document.getElementById('login-view');
 const credView  = document.getElementById('cred-view');
 const loginError = document.getElementById('login-error');
@@ -7,6 +8,7 @@ const emailInput = document.getElementById('email');
 const passwordInput = document.getElementById('password');
 const loginBtn  = document.getElementById('login-btn');
 const logoutBtn = document.getElementById('logout-btn');
+const openOptionsBtn = document.getElementById('open-options-btn');
 const credList  = document.getElementById('cred-list');
 const emptyMsg  = document.getElementById('empty-msg');
 const loadingMsg = document.getElementById('loading');
@@ -21,12 +23,24 @@ async function init() {
     try { activeDomain = new URL(tab.url).hostname; } catch (_) {}
   }
 
+  const { baseUrl } = await chrome.storage.sync.get('baseUrl');
+  if (!baseUrl) {
+    showNotConfigured();
+    return;
+  }
+
   const { authToken } = await chrome.storage.local.get('authToken');
   if (authToken && Date.now() < authToken.expiresAt) {
     await showCredentials();
   } else {
     showLogin();
   }
+}
+
+function showNotConfigured() {
+  notConfiguredView.hidden = false;
+  loginView.hidden = true;
+  credView.hidden = true;
 }
 
 function showLogin(errorMsg) {
@@ -152,6 +166,7 @@ async function handleLogout() {
   showLogin();
 }
 
+openOptionsBtn.addEventListener('click', () => chrome.runtime.openOptionsPage());
 loginBtn.addEventListener('click', handleLogin);
 logoutBtn.addEventListener('click', handleLogout);
 
