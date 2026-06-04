@@ -211,6 +211,36 @@
     }
   }
 
+  // ── Autofill dal popup ──────────────────────────────────────────────────
+
+  function setNativeValue(input, value) {
+    const setter = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value').set;
+    setter.call(input, value);
+    input.dispatchEvent(new Event('input', { bubbles: true }));
+    input.dispatchEvent(new Event('change', { bubbles: true }));
+  }
+
+  function fillCredential({ username, password }) {
+    const passwordField = Array.from(document.querySelectorAll('input[type="password"]'))
+      .find(f => f.offsetParent !== null);
+    if (!passwordField) return;
+
+    if (password) setNativeValue(passwordField, password);
+
+    if (username) {
+      const usernameField = findUsernameField(document.body, passwordField);
+      if (usernameField) setNativeValue(usernameField, username);
+    }
+  }
+
+  chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
+    if (message.type === 'FILL') {
+      fillCredential(message.payload);
+      sendResponse({ status: 'ok' });
+    }
+    return true;
+  });
+
   // Turbo Drive (Rails)
   document.addEventListener('turbo:load', onNavigated);
 
