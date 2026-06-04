@@ -1,8 +1,6 @@
 (function () {
   'use strict';
 
-  document.documentElement.setAttribute('data-pm-ext-installed', '');
-
   const BANNER_ID = 'pm-save-banner';
   const STORAGE_KEY = 'pmPendingCred';
   const USERNAME_KEY = 'pmPendingUsername';

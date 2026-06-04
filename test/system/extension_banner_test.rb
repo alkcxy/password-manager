@@ -17,8 +17,11 @@ class ExtensionBannerTest < ApplicationSystemTestCase
 
   test "banner assente se extension installata" do
     visit credentials_url
+    # Simula install_marker.js: setta l'attributo su <html>, poi Turbo.visit
+    # re-renderizza il body con Stimulus che riconnette trovando l'attributo già presente
     page.execute_script("document.documentElement.setAttribute('data-pm-ext-installed', '')")
-    assert_no_selector "[data-controller='extension-banner']", wait: 2
+    page.execute_script("Turbo.visit(window.location.href, { action: 'replace' })")
+    assert_no_selector "[data-controller='extension-banner']", wait: 3
   end
 
   test "banner si chiude al click su Chiudi" do
