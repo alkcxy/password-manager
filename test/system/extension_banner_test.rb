@@ -14,35 +14,35 @@ class ExtensionBannerTest < ApplicationSystemTestCase
     page.execute_script("localStorage.removeItem('pm_ext_installed')") rescue nil
   end
 
-  test "banner visibile al primo accesso" do
+  test "banner visibile al primo accesso (dopo timeout attesa estensione)" do
     visit credentials_url
-    assert_selector "[data-controller='extension-banner']"
+    # Il banner parte hidden: appare dopo EXTENSION_SIGNAL_TIMEOUT_MS se non arriva segnale
+    assert_selector "[data-controller='extension-banner']:not([style*='display: none'])", wait: 2
   end
 
-  test "banner assente se extension gia' attiva (localStorage da visita precedente)" do
+  test "banner mai mostrato se estensione gia' attiva (localStorage da visita precedente)" do
     page.execute_script("localStorage.setItem('pm_ext_installed', '1')")
     visit credentials_url
     assert_no_selector "[data-controller='extension-banner']"
   end
 
-  test "banner sparisce quando il content script si attiva sulla pagina corrente" do
+  test "banner mai mostrato se il content script si attiva prima del timeout" do
     visit credentials_url
-    assert_selector "[data-controller='extension-banner']"
     page.execute_script("window.dispatchEvent(new CustomEvent('pm-ext-installed'))")
-    assert_no_selector "[data-controller='extension-banner']", wait: 1
+    assert_no_selector "[data-controller='extension-banner']"
   end
 
   test "banner si chiude al click su Chiudi" do
     visit credentials_url
-    assert_selector "[data-controller='extension-banner']"
+    find("[data-controller='extension-banner']", wait: 2)
     find("[data-action='extension-banner#dismiss']").click
     assert_no_selector "[data-controller='extension-banner']", wait: 2
   end
 
-  test "banner non riappare dopo dismiss nella stessa sessione" do
+  test "banner non riappare dopo dismiss" do
     visit credentials_url
+    find("[data-controller='extension-banner']", wait: 2)
     find("[data-action='extension-banner#dismiss']").click
-    assert_no_selector "[data-controller='extension-banner']", wait: 2
     visit credentials_url
     assert_no_selector "[data-controller='extension-banner']"
   end
