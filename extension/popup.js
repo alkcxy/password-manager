@@ -9,6 +9,7 @@ const passwordInput = document.getElementById('password');
 const loginBtn  = document.getElementById('login-btn');
 const logoutBtn = document.getElementById('logout-btn');
 const openOptionsBtn = document.getElementById('open-options-btn');
+const loggedAs  = document.getElementById('logged-as');
 const credList  = document.getElementById('cred-list');
 const emptyMsg  = document.getElementById('empty-msg');
 const loadingMsg = document.getElementById('loading');
@@ -56,6 +57,9 @@ async function showCredentials() {
   credList.innerHTML = '';
   emptyMsg.hidden = true;
   loadingMsg.hidden = false;
+
+  const { loggedEmail } = await chrome.storage.local.get('loggedEmail');
+  loggedAs.textContent = loggedEmail ? `Loggato come ${loggedEmail}` : '';
 
   if (!activeDomain) {
     loadingMsg.hidden = true;
@@ -159,11 +163,13 @@ async function handleLogin() {
 
   emailInput.classList.remove('error');
   passwordInput.classList.remove('error');
+  await chrome.storage.local.set({ loggedEmail: email });
   await showCredentials();
 }
 
 async function handleLogout() {
   await chrome.runtime.sendMessage({ type: 'LOGOUT' });
+  await chrome.storage.local.remove('loggedEmail');
   showLogin();
 }
 
