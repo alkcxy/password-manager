@@ -167,18 +167,23 @@ Token expiry
 
 Le seguenti issue vanno lavorate in ordine — ogni step è prerequisito del successivo.
 
-| # | Storia | Issue | Dipende da |
-|---|---|---|---|
-| A | ~~HTTPS/TLS setup~~ _(non necessario: dominio pubblico con HTTPS)_ | [#61](https://github.com/alkcxy/password-manager/issues/61) | — |
-| B | ~~Rails API layer: `ApiToken` model + `Api::BaseController` + token auth~~ | [#62](https://github.com/alkcxy/password-manager/issues/62) | — |
-| C | ~~Rails API: `Api::SessionsController` (login/logout) + `rack-attack`~~ | [#63](https://github.com/alkcxy/password-manager/issues/63) | B |
-| D | ~~Rails API: `Api::CredentialsController` (index per domain, create) + `rack-cors`~~ | [#64](https://github.com/alkcxy/password-manager/issues/64) | B |
-| E | ~~Browser extension: content script (capture + save prompt)~~ | [#65](https://github.com/alkcxy/password-manager/issues/65) | C, D |
-| F | Browser extension: background service worker (token management, API calls, URL configurabile) | [#66](https://github.com/alkcxy/password-manager/issues/66) | C, D, G |
-| G | Browser extension: options page (URL base configurabile, salvataggio in `chrome.storage.sync`) | [#68](https://github.com/alkcxy/password-manager/issues/68) | — |
-| H | Browser extension: popup (credential list, fill trigger, login/logout) | [#67](https://github.com/alkcxy/password-manager/issues/67) | E, F, G |
-| I | Web app: banner/suggerimento installazione extension | [#69](https://github.com/alkcxy/password-manager/issues/69) | — |
-| J | ~~`.dockerignore`: escludere `extension/` e `docs/` dall'immagine Docker~~ | — | — |
+| # | Storia | Issue | Dipende da | Stato |
+|---|---|---|---|---|
+| A | ~~HTTPS/TLS setup~~ _(non necessario: dominio pubblico con HTTPS)_ | [#61](https://github.com/alkcxy/password-manager/issues/61) | — | ✅ |
+| B | ~~Rails API layer: `ApiToken` model + `Api::BaseController` + token auth~~ | [#62](https://github.com/alkcxy/password-manager/issues/62) | — | ✅ |
+| C | ~~Rails API: `Api::SessionsController` (login/logout) + `rack-attack`~~ | [#63](https://github.com/alkcxy/password-manager/issues/63) | B | ✅ |
+| D | ~~Rails API: `Api::CredentialsController` (index per domain, create) + `rack-cors`~~ | [#64](https://github.com/alkcxy/password-manager/issues/64) | B | ✅ |
+| E | ~~Browser extension: content script (capture + save prompt)~~ ¹ | [#65](https://github.com/alkcxy/password-manager/issues/65) | C, D | ✅ (patch pendente dopo F+H) |
+| G | ~~Browser extension: options page (URL base configurabile, salvataggio in `chrome.storage.sync`)~~ | [#68](https://github.com/alkcxy/password-manager/issues/68) | — | ✅ |
+| F+H | Browser extension: background service worker + popup (login/logout, credential list, fill) | [#66](https://github.com/alkcxy/password-manager/issues/66) [#67](https://github.com/alkcxy/password-manager/issues/67) | C, D, E, G | 🔶 PR #76 aperta — da testare |
+| I | Web app: banner/suggerimento installazione extension | [#69](https://github.com/alkcxy/password-manager/issues/69) | — | ⬜ da fare |
+| J | ~~`.dockerignore`: escludere `extension/` e `docs/` dall'immagine Docker~~ | — | — | ✅ |
+
+**Note:**
+
+¹ **E — patch pendente:** il content script invia `SAVE_CREDENTIAL` senza gestire la risposta del background. Se l'utente non è autenticato o la `baseUrl` non è configurata, il salvataggio fallisce silenziosamente. Dopo il merge di F+H, E va aggiornato per mostrare un feedback all'utente in caso di `TOKEN_EXPIRED` o `NOT_CONFIGURED`.
+
+**Taglio sbagliato — lezione appresa:** F (background SW) e H (popup) erano state definite come storie separate con F prerequisito di H. In pratica il background senza popup non porta nessun valore osservabile: nessuna UI per il login, `SAVE_CREDENTIAL` dal content script fallisce silenziosamente, niente da testare end-to-end. Il taglio corretto era una storia unica "extension lato client" oppure due storie con ordine inverso (popup prima, che guida il design del background). Le due issue sono state collassate in un'unica PR (#76).
 
 ---
 
