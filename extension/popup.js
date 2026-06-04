@@ -116,14 +116,21 @@ async function handleLogin() {
   loginBtn.disabled = true;
   loginError.textContent = '';
 
-  const response = await chrome.runtime.sendMessage({
-    type: 'LOGIN',
-    payload: { email, password },
-  });
+  let response;
+  try {
+    response = await chrome.runtime.sendMessage({
+      type: 'LOGIN',
+      payload: { email, password },
+    });
+  } catch (_) {
+    loginBtn.disabled = false;
+    loginError.textContent = 'Errore di comunicazione con il background.';
+    return;
+  }
 
   loginBtn.disabled = false;
 
-  if (response.status === 'NOT_CONFIGURED') {
+  if (!response || response.status === 'NOT_CONFIGURED') {
     showLogin('Configura prima l\'URL dell\'istanza nelle opzioni.');
     return;
   }
