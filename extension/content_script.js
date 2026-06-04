@@ -258,6 +258,13 @@
   // Iniezione dinamica di campi
   new MutationObserver(scanForms).observe(document.documentElement, { childList: true, subtree: true });
 
+  // Rimuove il banner di installazione estensione dalla web app
+  function removeInstallBanner() {
+    document.querySelectorAll('[data-controller="extension-banner"]').forEach(el => el.remove());
+  }
+  removeInstallBanner();
+  document.addEventListener('turbo:load', removeInstallBanner);
+
   showPendingBannerIfSucceeded();
   scanForms();
 }());
