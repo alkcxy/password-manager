@@ -1,6 +1,12 @@
 (function () {
   'use strict';
 
+  // Segnala alla web app che l'estensione è attiva su questa pagina.
+  // localStorage persiste per le navigazioni successive; l'evento rimuove
+  // immediatamente il banner se Stimulus si è connesso prima di questo script.
+  try { localStorage.setItem('pm_ext_installed', '1'); } catch (_) {}
+  window.dispatchEvent(new CustomEvent('pm-ext-installed'));
+
   const BANNER_ID = 'pm-save-banner';
   const STORAGE_KEY = 'pmPendingCred';
   const USERNAME_KEY = 'pmPendingUsername';
@@ -251,6 +257,18 @@
 
   // Iniezione dinamica di campi
   new MutationObserver(scanForms).observe(document.documentElement, { childList: true, subtree: true });
+
+  // Rimuove il banner di installazione estensione dalla web app.
+  // MutationObserver dedicato: cattura il banner anche se viene aggiunto dopo
+  // l'esecuzione del content script (Turbo morph, render dinamico, ecc.).
+  function removeInstallBanner() {
+    document.querySelectorAll('[data-controller="extension-banner"]').forEach(el => el.remove());
+  }
+  removeInstallBanner();
+  document.addEventListener('turbo:load', removeInstallBanner);
+  new MutationObserver(removeInstallBanner).observe(document.documentElement, {
+    childList: true, subtree: true
+  });
 
   showPendingBannerIfSucceeded();
   scanForms();

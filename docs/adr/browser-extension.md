@@ -175,7 +175,7 @@ Le seguenti issue vanno lavorate in ordine — ogni step è prerequisito del suc
 | D | ~~Rails API: `Api::CredentialsController` (index per domain, create) + `rack-cors`~~ | [#64](https://github.com/alkcxy/password-manager/issues/64) | B | ✅ |
 | E | ~~Browser extension: content script (capture + save prompt)~~ ¹ | [#65](https://github.com/alkcxy/password-manager/issues/65) | C, D | ✅ (patch pendente dopo F+H) |
 | G | ~~Browser extension: options page (URL base configurabile, salvataggio in `chrome.storage.sync`)~~ | [#68](https://github.com/alkcxy/password-manager/issues/68) | — | ✅ |
-| F+H | Browser extension: background service worker + popup (login/logout, credential list, fill) | [#66](https://github.com/alkcxy/password-manager/issues/66) [#67](https://github.com/alkcxy/password-manager/issues/67) | C, D, E, G | 🔶 PR #76 aperta — da testare |
+| F+H | ~~Browser extension: background service worker + popup (login/logout, credential list, fill)~~ | [#66](https://github.com/alkcxy/password-manager/issues/66) [#67](https://github.com/alkcxy/password-manager/issues/67) | C, D, E, G | ✅ (T09/T10/T11 rinviati a [#77](https://github.com/alkcxy/password-manager/issues/77)) |
 | I | Web app: banner/suggerimento installazione extension | [#69](https://github.com/alkcxy/password-manager/issues/69) | — | ⬜ da fare |
 | J | ~~`.dockerignore`: escludere `extension/` e `docs/` dall'immagine Docker~~ | — | — | ✅ |
 
