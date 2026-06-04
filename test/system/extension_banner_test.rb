@@ -17,9 +17,8 @@ class ExtensionBannerTest < ApplicationSystemTestCase
 
   test "banner assente se extension installata" do
     visit credentials_url
-    page.execute_script("window.__pmExtensionInstalled = true")
-    page.execute_script("Turbo.visit(window.location.href, { action: 'replace' })")
-    assert_no_selector "[data-controller='extension-banner']", wait: 3
+    page.execute_script("document.documentElement.setAttribute('data-pm-ext-installed', '')")
+    assert_no_selector "[data-controller='extension-banner']", wait: 2
   end
 
   test "banner si chiude al click su Chiudi" do
