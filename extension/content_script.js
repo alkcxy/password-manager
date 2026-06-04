@@ -1,6 +1,8 @@
 (function () {
   'use strict';
 
+  window.__pmExtensionInstalled = true;
+
   const BANNER_ID = 'pm-save-banner';
   const STORAGE_KEY = 'pmPendingCred';
   const USERNAME_KEY = 'pmPendingUsername';

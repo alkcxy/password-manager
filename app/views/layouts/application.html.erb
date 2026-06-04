@@ -35,6 +35,9 @@
         </div>
       </div>
       <% end %>
+      <% if logged_in? %>
+        <%= render 'shared/extension_banner' %>
+      <% end %>
       <div id="notice"><%= notice %></div>
       <%= yield %>
     </div>
