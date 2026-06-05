@@ -61,6 +61,20 @@ async function showCredentials() {
   const { loggedEmail } = await chrome.storage.local.get('loggedEmail');
   loggedAs.textContent = loggedEmail ? `Loggato come ${loggedEmail}` : '';
 
+  let hasPasswordField = false;
+  if (activeTabId != null) {
+    try {
+      const res = await chrome.tabs.sendMessage(activeTabId, { type: 'HAS_PASSWORD_FIELD' });
+      hasPasswordField = res?.hasPasswordField === true;
+    } catch (_) {}
+  }
+  if (!hasPasswordField) {
+    loadingMsg.hidden = true;
+    emptyMsg.textContent = 'Nessun campo password rilevato in questa pagina.';
+    emptyMsg.hidden = false;
+    return;
+  }
+
   if (!activeDomain) {
     loadingMsg.hidden = true;
     emptyMsg.textContent = 'Impossibile determinare il dominio della pagina.';

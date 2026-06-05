@@ -244,6 +244,9 @@
       fillCredential(message.payload);
       sendResponse({ status: 'ok' });
     }
+    if (message.type === 'HAS_PASSWORD_FIELD') {
+      sendResponse({ hasPasswordField: !!document.querySelector('input[type="password"]') });
+    }
     return true;
   });
 
