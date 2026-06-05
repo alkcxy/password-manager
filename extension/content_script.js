@@ -126,8 +126,50 @@
     chrome.storage.local.remove(STORAGE_KEY);
   }
 
-  function maybeShowBanner(cred) {
+  function showAuthBanner() {
+    removeBanner();
+    clearPending();
+
+    const banner = document.createElement('div');
+    banner.id = BANNER_ID;
+    banner.style.cssText =
+      'position:fixed;top:0;left:0;right:0;z-index:2147483647;' +
+      'background:#1e293b;color:#f8fafc;padding:12px 16px;' +
+      'display:flex;align-items:center;gap:12px;' +
+      'font-family:system-ui,sans-serif;font-size:14px;' +
+      'box-shadow:0 2px 8px rgba(0,0,0,0.35)';
+
+    const text = document.createElement('span');
+    text.style.flex = '1';
+    text.textContent = 'Accedi all\'estensione per salvare le credenziali su questo sito.';
+
+    banner.append(text);
+    document.body.appendChild(banner);
+  }
+
+  async function maybeShowBanner(cred) {
     if (!cred) return;
+
+    let authIssue = false;
+    try {
+      const res = await chrome.runtime.sendMessage({
+        type: 'GET_CREDENTIALS',
+        payload: { domain: cred.name }
+      });
+
+      if (res && (res.status === 'TOKEN_EXPIRED' || res.status === 'NOT_CONFIGURED')) {
+        authIssue = true;
+      } else if (res && res.status === 'ok' && res.data && res.data.length > 0) {
+        clearPending();
+        return;
+      }
+    } catch (_) {}
+
+    if (authIssue) {
+      showAuthBanner();
+      return;
+    }
+
     clearPending();
     showSaveBanner(cred, () => {
       chrome.runtime.sendMessage({ type: 'SAVE_CREDENTIAL', payload: cred });
