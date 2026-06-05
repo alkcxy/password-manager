@@ -378,9 +378,12 @@
 
       if (res && (res.status === 'TOKEN_EXPIRED' || res.status === 'NOT_CONFIGURED')) {
         authIssue = true;
-      } else if (res && res.status === 'ok' && res.data && res.data.length > 0) {
-        clearPending();
-        return;
+      } else if (res && res.status === 'ok' && res.data) {
+        const alreadyExists = res.data.some(c => c.username === cred.username);
+        if (alreadyExists) {
+          clearPending();
+          return;
+        }
       }
     } catch (_) {}
 
