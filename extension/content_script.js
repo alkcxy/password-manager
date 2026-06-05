@@ -126,9 +126,18 @@
     chrome.storage.local.remove(STORAGE_KEY);
   }
 
-  function maybeShowBanner(cred) {
+  async function maybeShowBanner(cred) {
     if (!cred) return;
     clearPending();
+
+    try {
+      const res = await chrome.runtime.sendMessage({
+        type: 'GET_CREDENTIALS',
+        payload: { domain: cred.name }
+      });
+      if (res && res.status === 'ok' && res.data && res.data.length > 0) return;
+    } catch (_) {}
+
     showSaveBanner(cred, () => {
       chrome.runtime.sendMessage({ type: 'SAVE_CREDENTIAL', payload: cred });
     }, () => {});
