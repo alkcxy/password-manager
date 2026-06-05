@@ -126,8 +126,9 @@
     chrome.storage.local.remove(STORAGE_KEY);
   }
 
-  function showAuthBanner(onIgnore) {
+  function showAuthBanner() {
     removeBanner();
+    clearPending();
 
     const banner = document.createElement('div');
     banner.id = BANNER_ID;
@@ -142,22 +143,14 @@
     text.style.flex = '1';
     text.textContent = 'Accedi all\'estensione per salvare le credenziali su questo sito.';
 
-    const btnLogin = makeButton('Accedi', '#3b82f6', '#fff');
-    const btnIgnore = makeButton('Ignora', 'transparent', '#94a3b8');
-
-    btnLogin.addEventListener('click', () => {
-      removeBanner();
-      chrome.runtime.sendMessage({ type: 'OPEN_POPUP' });
-    });
-    btnIgnore.addEventListener('click', () => { removeBanner(); onIgnore(); });
-
-    banner.append(text, btnLogin, btnIgnore);
+    banner.append(text);
     document.body.appendChild(banner);
   }
 
   async function maybeShowBanner(cred) {
     if (!cred) return;
 
+    let authIssue = false;
     try {
       const res = await chrome.runtime.sendMessage({
         type: 'GET_CREDENTIALS',
@@ -165,15 +158,17 @@
       });
 
       if (res && (res.status === 'TOKEN_EXPIRED' || res.status === 'NOT_CONFIGURED')) {
-        showAuthBanner(() => clearPending());
-        return;
-      }
-
-      if (res && res.status === 'ok' && res.data && res.data.length > 0) {
+        authIssue = true;
+      } else if (res && res.status === 'ok' && res.data && res.data.length > 0) {
         clearPending();
         return;
       }
     } catch (_) {}
+
+    if (authIssue) {
+      showAuthBanner();
+      return;
+    }
 
     clearPending();
     showSaveBanner(cred, () => {

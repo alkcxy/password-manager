@@ -10,7 +10,6 @@ async function handleMessage(message) {
     case 'GET_CREDENTIALS': return getCredentials(message.payload.domain);
     case 'GET_CREDENTIAL':  return getCredential(message.payload.id);
     case 'SAVE_CREDENTIAL': return saveCredential(message.payload);
-    case 'OPEN_POPUP':      return openPopup();
     default:                return { status: 'error', message: 'Unknown message type' };
   }
 }
@@ -111,15 +110,6 @@ async function getCredential(id) {
   return apiFetch(`${baseUrl}/api/credentials/${encodeURIComponent(id)}`, {
     headers: { Authorization: `Bearer ${token}` },
   });
-}
-
-async function openPopup() {
-  try {
-    await chrome.action.openPopup();
-    return { status: 'ok' };
-  } catch (e) {
-    return { status: 'error', message: e.message };
-  }
 }
 
 async function saveCredential({ name, username, password, url }) {
