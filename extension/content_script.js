@@ -126,18 +126,56 @@
     chrome.storage.local.remove(STORAGE_KEY);
   }
 
+  function showAuthBanner(onIgnore) {
+    removeBanner();
+
+    const banner = document.createElement('div');
+    banner.id = BANNER_ID;
+    banner.style.cssText =
+      'position:fixed;top:0;left:0;right:0;z-index:2147483647;' +
+      'background:#1e293b;color:#f8fafc;padding:12px 16px;' +
+      'display:flex;align-items:center;gap:12px;' +
+      'font-family:system-ui,sans-serif;font-size:14px;' +
+      'box-shadow:0 2px 8px rgba(0,0,0,0.35)';
+
+    const text = document.createElement('span');
+    text.style.flex = '1';
+    text.textContent = 'Accedi all\'estensione per salvare le credenziali su questo sito.';
+
+    const btnLogin = makeButton('Accedi', '#3b82f6', '#fff');
+    const btnIgnore = makeButton('Ignora', 'transparent', '#94a3b8');
+
+    btnLogin.addEventListener('click', () => {
+      removeBanner();
+      chrome.runtime.sendMessage({ type: 'OPEN_POPUP' });
+    });
+    btnIgnore.addEventListener('click', () => { removeBanner(); onIgnore(); });
+
+    banner.append(text, btnLogin, btnIgnore);
+    document.body.appendChild(banner);
+  }
+
   async function maybeShowBanner(cred) {
     if (!cred) return;
-    clearPending();
 
     try {
       const res = await chrome.runtime.sendMessage({
         type: 'GET_CREDENTIALS',
         payload: { domain: cred.name }
       });
-      if (res && res.status === 'ok' && res.data && res.data.length > 0) return;
+
+      if (res && (res.status === 'TOKEN_EXPIRED' || res.status === 'NOT_CONFIGURED')) {
+        showAuthBanner(() => clearPending());
+        return;
+      }
+
+      if (res && res.status === 'ok' && res.data && res.data.length > 0) {
+        clearPending();
+        return;
+      }
     } catch (_) {}
 
+    clearPending();
     showSaveBanner(cred, () => {
       chrome.runtime.sendMessage({ type: 'SAVE_CREDENTIAL', payload: cred });
     }, () => {});
