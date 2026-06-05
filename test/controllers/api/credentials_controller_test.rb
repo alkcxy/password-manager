@@ -230,4 +230,44 @@ class Api::CredentialsControllerTest < ActionDispatch::IntegrationTest
     assert_response :unauthorized
     assert_equal "application/json; charset=utf-8", response.content_type
   end
+
+  # PUT /api/credentials/:id
+
+  test "update returns 401 without token" do
+    put "/api/credentials/#{@github_cred.id}",
+        params: { name: "GitHub Updated", username: "alice", password: "newpass", url: "https://github.com" },
+        as: :json
+    assert_response :unauthorized
+    assert_equal "application/json; charset=utf-8", response.content_type
+  end
+
+  test "update returns 200 with valid params" do
+    put "/api/credentials/#{@github_cred.id}",
+        params: { name: "GitHub Updated", username: "alice2", password: "newpass", url: "https://github.com" },
+        headers: { "Authorization" => "Bearer #{@token.token}" }, as: :json
+    assert_response :ok
+    json = JSON.parse(response.body)
+    assert_equal @github_cred.id.to_s, json["id"]
+    assert_equal "GitHub Updated", json["name"]
+    assert_nil json["password"]
+    assert_equal "application/json; charset=utf-8", response.content_type
+  end
+
+  test "update returns 422 when required param missing" do
+    put "/api/credentials/#{@github_cred.id}",
+        params: { name: "", username: "alice", password: "pass", url: "https://github.com" },
+        headers: { "Authorization" => "Bearer #{@token.token}" }, as: :json
+    assert_response :unprocessable_entity
+    assert_equal "application/json; charset=utf-8", response.content_type
+    json = JSON.parse(response.body)
+    assert json["errors"].present?
+  end
+
+  test "update returns 404 for another user credential" do
+    put "/api/credentials/#{@other_cred.id}",
+        params: { name: "Hack", username: "alice", password: "pass", url: "https://github.com" },
+        headers: { "Authorization" => "Bearer #{@token.token}" }, as: :json
+    assert_response :not_found
+    assert_equal "application/json; charset=utf-8", response.content_type
+  end
 end
