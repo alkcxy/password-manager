@@ -5,12 +5,13 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
 
 async function handleMessage(message) {
   switch (message.type) {
-    case 'LOGIN':           return login(message.payload);
-    case 'LOGOUT':          return logout();
-    case 'GET_CREDENTIALS': return getCredentials(message.payload.domain);
-    case 'GET_CREDENTIAL':  return getCredential(message.payload.id);
-    case 'SAVE_CREDENTIAL': return saveCredential(message.payload);
-    default:                return { status: 'error', message: 'Unknown message type' };
+    case 'LOGIN':              return login(message.payload);
+    case 'LOGOUT':             return logout();
+    case 'GET_CREDENTIALS':    return getCredentials(message.payload.domain);
+    case 'GET_CREDENTIAL':     return getCredential(message.payload.id);
+    case 'SAVE_CREDENTIAL':    return saveCredential(message.payload);
+    case 'UPDATE_CREDENTIAL':  return updateCredential(message.payload);
+    default:                   return { status: 'error', message: 'Unknown message type' };
   }
 }
 
@@ -46,6 +47,10 @@ async function apiFetch(url, options = {}) {
   const response = await fetch(url, options);
   if (response.status === 401) return { status: 'TOKEN_EXPIRED' };
   if (response.status === 204) return { status: 'ok' };
+  if (response.status === 422) {
+    const data = await response.json().catch(() => ({}));
+    return { status: 'error', errors: data.errors || ['Errore di validazione'] };
+  }
   if (!response.ok) {
     const text = await response.text().catch(() => '');
     return { status: 'error', message: text || `HTTP ${response.status}` };
@@ -124,5 +129,20 @@ async function saveCredential({ name, username, password, url }) {
       Authorization: `Bearer ${token}`,
     },
     body: JSON.stringify({ name, username, password, url }),
+  });
+}
+
+async function updateCredential({ id, name, username, password, url, note }) {
+  const authResult = await resolveAuth();
+  if (authResult.error) return authResult.error;
+
+  const { baseUrl, token } = authResult;
+  return apiFetch(`${baseUrl}/api/credentials/${encodeURIComponent(id)}`, {
+    method: 'PUT',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify({ name, username, password, url, note }),
   });
 }

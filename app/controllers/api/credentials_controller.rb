@@ -33,6 +33,17 @@ module Api
       render json: { errors: [e.message] }, status: :unprocessable_entity
     end
 
+    def update
+      credential = @current_user.credentials.find(params[:id])
+      if credential.update(credential_params)
+        render json: { id: credential.id.to_s, name: credential.name }
+      else
+        render json: { errors: credential.errors.full_messages }, status: :unprocessable_entity
+      end
+    rescue Mongoid::Errors::DocumentNotFound
+      render json: { error: "Credential not found" }, status: :not_found
+    end
+
     private
 
     def credential_params
