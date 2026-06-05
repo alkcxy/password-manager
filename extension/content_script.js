@@ -101,7 +101,7 @@
     return { wrapper, input };
   }
 
-  function showReviewForm(cred) {
+  function showReviewForm(cred, options = {}) {
     removeReviewForm();
     removeBanner();
 
@@ -118,7 +118,7 @@
       'max-width:calc(100vw - 32px);box-shadow:0 8px 32px rgba(0,0,0,0.25);color:#1e293b';
 
     const title = document.createElement('h2');
-    title.textContent = 'Salva credenziale';
+    title.textContent = (cred.id && !options.autoSaveFailed) ? 'Modifica credenziale' : 'Salva credenziale';
     title.style.cssText =
       'margin:0 0 16px;font-size:16px;font-weight:700;' +
       'font-family:system-ui,sans-serif;color:#1e293b';
@@ -150,7 +150,20 @@
       'background:transparent;color:#64748b;border:1px solid #e2e8f0;border-radius:6px;cursor:pointer';
 
     btnRow.append(saveBtn, cancelBtn);
-    box.append(title, errorDiv, nameWrap, usernameWrap, passwordWrap, urlWrap, btnRow);
+
+    const boxChildren = [title];
+    if (options.autoSaveFailed) {
+      const noticeDiv = document.createElement('div');
+      noticeDiv.style.cssText =
+        'background:#fef3c7;border:1px solid #fcd34d;border-radius:6px;' +
+        'padding:8px 12px;font-size:13px;color:#92400e;margin-bottom:12px;' +
+        'font-family:system-ui,sans-serif';
+      noticeDiv.textContent = options.errorMsg || 'Salvataggio automatico non riuscito. Verifica i dati e riprova.';
+      boxChildren.push(noticeDiv);
+    }
+    boxChildren.push(errorDiv, nameWrap, usernameWrap, passwordWrap, urlWrap, btnRow);
+    box.append(...boxChildren);
+
     overlay.appendChild(box);
     document.body.appendChild(overlay);
 
@@ -302,6 +315,57 @@
     document.body.appendChild(banner);
   }
 
+  function showSuccessBannerWithEdit(name, savedCred) {
+    removeBanner();
+    const banner = document.createElement('div');
+    banner.id = BANNER_ID;
+    banner.style.cssText =
+      'position:fixed;top:0;left:0;right:0;z-index:2147483647;' +
+      'background:#16a34a;color:#fff;padding:12px 16px;' +
+      'display:flex;align-items:center;gap:12px;' +
+      'font-family:system-ui,sans-serif;font-size:14px;' +
+      'box-shadow:0 2px 8px rgba(0,0,0,0.35)';
+
+    const text = document.createElement('span');
+    text.style.flex = '1';
+    text.textContent = `"${name}" salvata.`;
+
+    const editBtn = makeButton('Modifica', 'rgba(255,255,255,0.25)', '#fff');
+    editBtn.addEventListener('click', () => {
+      removeBanner();
+      showReviewForm(savedCred);
+    });
+
+    banner.append(text, editBtn);
+    document.body.appendChild(banner);
+    setTimeout(removeBanner, 5000);
+  }
+
+  async function handleAutoSave(cred) {
+    let response;
+    try {
+      response = await chrome.runtime.sendMessage({
+        type: 'SAVE_CREDENTIAL',
+        payload: { name: cred.name, username: cred.username, password: cred.password, url: cred.url },
+      });
+    } catch (_) {
+      showReviewForm(cred, { autoSaveFailed: true, errorMsg: 'Errore di comunicazione. Verifica i dati e riprova.' });
+      return;
+    }
+
+    if (response.status === 'ok') {
+      clearPending();
+      const savedCred = { ...cred, id: response.data.id };
+      showSuccessBannerWithEdit(cred.name, savedCred);
+    } else if (response.status === 'TOKEN_EXPIRED') {
+      clearPending();
+      showAuthBanner();
+    } else {
+      const errorMsg = (response.errors || []).join(' — ') || 'Salvataggio automatico non riuscito. Verifica i dati e riprova.';
+      showReviewForm(cred, { autoSaveFailed: true, errorMsg });
+    }
+  }
+
   async function maybeShowBanner(cred) {
     if (!cred) return;
 
@@ -327,7 +391,7 @@
 
     clearPending();
     showSaveBanner(cred, () => {
-      showReviewForm(cred);
+      handleAutoSave(cred);
     }, () => {});
   }
 
